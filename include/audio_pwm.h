@@ -16,21 +16,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "pico/stdlib.h"
+#ifndef SYNTHPATHY_AUDIO_PWM_H_
+#define SYNTHPATHY_AUDIO_PWM_H_
 
-#include "global.h"
-#include "audio_pwm.h"
+/**
+ * @brief Initialize pwm audio pin and interruts for audio use.
+ * 
+ */
+void initialize_pwm_audio();
 
-int main() {
-    // Start by overclocking the controler
-    set_sys_clock_khz(SYSTEM_CLOCK_FREQUENCY_KHZ, true);
+/**
+ * @brief PWM Interrupt Handler which outputs PWM level and keeps track of time. 
+ * 
+ */
+void pwm_interrupt_handler();
 
-    // Initialize origin of time
-    time_nb_periods_fs = 0;
-
-    // Initialize everything
-    initialize_pwm_audio();
-
-    // TODO : Never reach return
-    return 0;
-}
+#endif //SYNTHPATHY_AUDIO_PWM_H_

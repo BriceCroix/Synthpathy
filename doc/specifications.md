@@ -29,7 +29,7 @@ The status is one of the following :
 |  1.2a   |Saw Wave
 |  1.2b   |Square Wave
 |1.3      |Ability to generate simple envelopes such as Attack-Sustain
-|1.9      |Ability to provide user visual indications with LEDs
+|1.9      |Ability to provide user visual indications with 3 LEDs
 
 
 ### Optional features
@@ -57,3 +57,4 @@ The status is one of the following :
 | Feat ID | Description                                                         | Status | Comment |
 |:-------:|:--------------------------------------------------------------------|:------:|:--------|
 |2.0      |Ability to pilot an external device for additional analog inputs
+|2.1      |Ability to pilot lots of LEDs with SIPO registers (such as 74AHC594)

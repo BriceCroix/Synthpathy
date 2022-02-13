@@ -3,7 +3,10 @@ cmake_minimum_required(VERSION 3.13)
 # initialize the SDK based on PICO_SDK_PATH
 include(pico_sdk_import.cmake)
 
-project(Synthpathy VERSION 1.0.0)
+project(Synthpathy
+    LANGUAGES C CXX
+    VERSION 1.0.0
+)
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 11)
@@ -30,7 +33,10 @@ add_executable(Synthpathy
 )
 
 # Add pico_stdlib library which aggregates commonly used features
-target_link_libraries(Synthpathy pico_stdlib)
+target_link_libraries(Synthpathy
+    pico_stdlib
+    hardware_pwm
+)
 
 # create map/bin/hex/uf2 file in addition to ELF.
 pico_add_extra_outputs(Synthpathy)

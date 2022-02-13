@@ -1,0 +1,140 @@
+/**
+ * Synthpathy is a small and versatile audio synthesizer on a microcontroler. 
+ * Copyright (C) 2022  Brice Croix
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#ifndef SYNTHPATHY_GLOBAL_H_
+#define SYNTHPATHY_GLOBAL_H_
+
+#include "pico/stdlib.h"
+#include "hardware/pwm.h"
+
+//////////////////// Global variables //////////////////////////////////////////
+
+/**
+ * @brief The time in numbers periods of the sampling frequency.
+ * This variable is very important since all sample-based computation rely on it.
+ */
+extern volatile unsigned int time_nb_periods_fs;
+
+//////////////////// Global constants //////////////////////////////////////////
+
+/**
+ * @brief The System clock frequency in kHz, required for overclocking.
+ * 
+ */
+constexpr unsigned int SYSTEM_CLOCK_FREQUENCY_KHZ = 176000U;
+
+/**
+ * @brief The number of bits used by one channel the pwm audio output slice.
+ * 
+ */
+constexpr unsigned int PWM_AUDIO_BIT_DEPTH_PER_CHANNEL = 8;
+
+/**
+ * @brief The clock divider used by the pwm audio output.
+ * NB : 176MHz / (8*256) = 85937.5Hz of sampling frequency. 
+ */
+constexpr unsigned int PWM_AUDIO_CLK_DIVIDER = 8;
+
+/**
+ * @brief The actual sampling frequency used for sample-based computation.
+ * 
+ */
+constexpr float AUDIO_SAMPLING_FREQUENCY = (SYSTEM_CLOCK_FREQUENCY_KHZ*1e3f)
+    / (PWM_AUDIO_CLK_DIVIDER * (1<<PWM_AUDIO_BIT_DEPTH_PER_CHANNEL));
+
+//////////////////// GPIO pins assignation /////////////////////////////////////
+
+/**
+ * @brief The GPIO pins used for the audio PWM output.
+ * These pins are connected to PWM Channel 1 (slice 1, channel 0 and 1).
+ * PIN_PWM_AUDIO_OUTPUT_L takes bits 0 to 7 of the audio value (Low byte).
+ * PIN_PWM_AUDIO_OUTPUT_H takes bits 8 to 15 of the audio value (High byte).
+ * @{
+ */
+constexpr unsigned int PIN_PWM_AUDIO_OUTPUT_L = 2;
+constexpr unsigned int PIN_PWM_AUDIO_OUTPUT_H = 3;
+/**@}*/
+
+/**
+ * @brief The slice associated with the audio PWM pins.
+ * NB : equivalent to pwm_gpio_to_slice_num(PIN_PWM_AUDIO_OUTPUT_L).
+ */
+constexpr unsigned int SLICE_PWM_AUDIO_OUTPUT = 1;
+
+/**
+ * @brief The GPIO pin associated with the midi output.
+ * This pin is connected to UART1_TX.
+ */
+constexpr unsigned int PIN_MIDI_OUT = 4;
+
+/**
+ * @brief The GPIO pin associated with the midi input.
+ * This pin is connected to UART1_RX.
+ */
+constexpr unsigned int PIN_MIDI_IN = 5;
+
+/**
+ * @brief The microcontroler output array for the button matrix.
+ * NB : 5 outputs and 5 inputs makes for 25 buttons.
+ * @{
+ */
+constexpr unsigned int PIN_BUTTON_MATRIX_OUT0 = 6;
+constexpr unsigned int PIN_BUTTON_MATRIX_OUT1 = 7;
+constexpr unsigned int PIN_BUTTON_MATRIX_OUT2 = 8;
+constexpr unsigned int PIN_BUTTON_MATRIX_OUT3 = 9;
+constexpr unsigned int PIN_BUTTON_MATRIX_OUT4 = 10;
+/**@}*/
+
+/**
+ * @brief The microcontroler input array for the button matrix.
+ * NB : 5 outputs and 5 inputs makes for 25 buttons.
+ * @{
+ */
+constexpr unsigned int PIN_BUTTON_MATRIX_IN0 = 11;
+constexpr unsigned int PIN_BUTTON_MATRIX_IN1 = 12;
+constexpr unsigned int PIN_BUTTON_MATRIX_IN2 = 13;
+constexpr unsigned int PIN_BUTTON_MATRIX_IN3 = 14;
+constexpr unsigned int PIN_BUTTON_MATRIX_IN4 = 15;
+/**@}*/
+
+/**
+ * @brief The GPIO pins used for the led indications.
+ * @{
+ */
+constexpr unsigned int PIN_LED0 = 20;
+constexpr unsigned int PIN_LED1 = 20;
+constexpr unsigned int PIN_LED2 = 20;
+/**@}*/
+
+/**
+ * @brief The GPIO pin used by the on-board LED.
+ * 
+ */
+constexpr unsigned int PIN_LED_ONBOARD = 25;
+
+/**
+ * @brief The GPIO pins used for the potentiometers.
+ * These pins are connected to ADC0, ADC1 and ADC2.
+ * @{
+ */
+constexpr unsigned int PIN_POTENTIOMETER0 = 26;
+constexpr unsigned int PIN_POTENTIOMETER1 = 27;
+constexpr unsigned int PIN_POTENTIOMETER2 = 28;
+/**@}*/
+
+#endif //SYNTHPATHY_GLOBAL_H_

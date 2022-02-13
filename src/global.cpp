@@ -16,21 +16,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "pico/stdlib.h"
-
 #include "global.h"
-#include "audio_pwm.h"
 
-int main() {
-    // Start by overclocking the controler
-    set_sys_clock_khz(SYSTEM_CLOCK_FREQUENCY_KHZ, true);
-
-    // Initialize origin of time
-    time_nb_periods_fs = 0;
-
-    // Initialize everything
-    initialize_pwm_audio();
-
-    // TODO : Never reach return
-    return 0;
-}
+volatile unsigned int time_nb_periods_fs;
