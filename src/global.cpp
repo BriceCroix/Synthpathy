@@ -18,4 +18,8 @@
 
 #include "global.h"
 
-volatile unsigned int time_nb_periods_fs;
+// Global variables definition -------------------------------------------------
+
+volatile unsigned int g_time_nb_periods_fs;
+
+CircularBuffer<MidiEvent, 4> g_midi_internal_buffer;

@@ -16,37 +16,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "pico/stdlib.h"
-#include "hardware/sync.h"
+#include "waveforms.h"
 
-#include "global.h"
-#include "audio_pwm.h"
-#include "Controls.h"
+#include <math.h>
 
-int main() {
-    // Start by overclocking the controler
-    set_sys_clock_khz(SYSTEM_CLOCK_FREQUENCY_KHZ, true);
+float square_wave(float time, float frequency, float duty_cycle)
+{
+    float period = 1.f / frequency;
+    return (std::fmod(time, period) < (period*duty_cycle)) ? 1.0f : -1.0f;
+}
 
-    // Initialize origin of time
-    g_time_nb_periods_fs = 0;
-
-    // Initialize everything
-    initialize_pwm_audio();
-    initialize_controls();
-    //TODO : initialize_adc()
-    
-    Controls& controls = Controls::get_instance();
-
-    while(1)
-    {
-        if(controls.read_buttons())
-        {
-            controls.process_buttons();
-        }
-        // TODO : pop midi queue and instanciate/update ActiveNotePool
-        __wfi(); // Wait for Interrupt
-    }
-
-    // Return is never reached
-    return 1;
+float saw_wave(float time, float frequency)
+{
+    float period = 1.f / frequency;
+    return (2 * std::fmod(time, period) / period) - 1;
 }

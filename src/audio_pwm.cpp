@@ -49,7 +49,7 @@ void pwm_interrupt_handler()
     // Clear IRQ flag
     pwm_clear_irq(SLICE_PWM_AUDIO_OUTPUT);
     // Increment time
-    time_nb_periods_fs++;
+    g_time_nb_periods_fs++;
 
     // TODO : use slice and channel rather than pin
     pwm_set_gpio_level(PIN_PWM_AUDIO_OUTPUT_L, 0);

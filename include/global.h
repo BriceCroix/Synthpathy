@@ -22,21 +22,22 @@
 #include "pico/stdlib.h"
 #include "hardware/pwm.h"
 
-//////////////////// Global variables //////////////////////////////////////////
+#include "CircularBuffer.hpp"
+#include "midi.h"
 
-/**
- * @brief The time in numbers periods of the sampling frequency.
- * This variable is very important since all sample-based computation rely on it.
- */
-extern volatile unsigned int time_nb_periods_fs;
-
-//////////////////// Global constants //////////////////////////////////////////
+// Global constants ------------------------------------------------------------
 
 /**
  * @brief The System clock frequency in kHz, required for overclocking.
  * 
  */
 constexpr unsigned int SYSTEM_CLOCK_FREQUENCY_KHZ = 176000U;
+
+/**
+ * @brief The number of midi events that can be stored in the midi buffer.
+ * 
+ */
+constexpr unsigned int SIZE_MIDI_BUFFER = 4;
 
 /**
  * @brief The number of bits used by one channel the pwm audio output slice.
@@ -57,7 +58,23 @@ constexpr unsigned int PWM_AUDIO_CLK_DIVIDER = 8;
 constexpr float AUDIO_SAMPLING_FREQUENCY = (SYSTEM_CLOCK_FREQUENCY_KHZ*1e3f)
     / (PWM_AUDIO_CLK_DIVIDER * (1<<PWM_AUDIO_BIT_DEPTH_PER_CHANNEL));
 
-//////////////////// GPIO pins assignation /////////////////////////////////////
+
+// Global variables ------------------------------------------------------------
+
+/**
+ * @brief The time in numbers periods of the sampling frequency.
+ * This variable is very important since all sample-based computation rely on it.
+ */
+extern volatile unsigned int g_time_nb_periods_fs;
+
+/**
+ * @brief The internal buffer used by Synthpathy to know what note to play and when.
+ * 
+ */
+extern CircularBuffer<MidiEvent, SIZE_MIDI_BUFFER> g_midi_internal_buffer;
+
+
+// GPIO pins assignation -------------------------------------------------------
 
 /**
  * @brief The GPIO pins used for the audio PWM output.
@@ -89,37 +106,40 @@ constexpr unsigned int PIN_MIDI_OUT = 4;
 constexpr unsigned int PIN_MIDI_IN = 5;
 
 /**
+ * @brief The number of output pins for the button matrix.
+ * 
+ */
+constexpr unsigned int NB_PIN_BUTTON_MATRIX_OUT = 5;
+
+/**
  * @brief The microcontroler output array for the button matrix.
  * NB : 5 outputs and 5 inputs makes for 25 buttons.
- * @{
  */
-constexpr unsigned int PIN_BUTTON_MATRIX_OUT0 = 6;
-constexpr unsigned int PIN_BUTTON_MATRIX_OUT1 = 7;
-constexpr unsigned int PIN_BUTTON_MATRIX_OUT2 = 8;
-constexpr unsigned int PIN_BUTTON_MATRIX_OUT3 = 9;
-constexpr unsigned int PIN_BUTTON_MATRIX_OUT4 = 10;
-/**@}*/
+constexpr unsigned int PIN_BUTTON_MATRIX_OUT[NB_PIN_BUTTON_MATRIX_OUT] = {6,7,8,9,10};
+
+/**
+ * @brief The number of input pins for the button matrix.
+ * 
+ */
+constexpr unsigned int NB_PIN_BUTTON_MATRIX_IN = 5;
 
 /**
  * @brief The microcontroler input array for the button matrix.
  * NB : 5 outputs and 5 inputs makes for 25 buttons.
- * @{
  */
-constexpr unsigned int PIN_BUTTON_MATRIX_IN0 = 11;
-constexpr unsigned int PIN_BUTTON_MATRIX_IN1 = 12;
-constexpr unsigned int PIN_BUTTON_MATRIX_IN2 = 13;
-constexpr unsigned int PIN_BUTTON_MATRIX_IN3 = 14;
-constexpr unsigned int PIN_BUTTON_MATRIX_IN4 = 15;
-/**@}*/
+constexpr unsigned int PIN_BUTTON_MATRIX_IN[NB_PIN_BUTTON_MATRIX_IN] = {11,12,13,14,15};
+
+/**
+ * @brief The number of GPIO pins used for the led indications.
+ * 
+ */
+constexpr unsigned int NB_PIN_LEDS = 3;
 
 /**
  * @brief The GPIO pins used for the led indications.
- * @{
+ * 
  */
-constexpr unsigned int PIN_LED0 = 20;
-constexpr unsigned int PIN_LED1 = 20;
-constexpr unsigned int PIN_LED2 = 20;
-/**@}*/
+constexpr unsigned int PIN_LEDS[NB_PIN_LEDS] = {20,21,22};
 
 /**
  * @brief The GPIO pin used by the on-board LED.
@@ -128,13 +148,16 @@ constexpr unsigned int PIN_LED2 = 20;
 constexpr unsigned int PIN_LED_ONBOARD = 25;
 
 /**
+ * @brief The number of GPIO pins used for the potentiometers.
+ * 
+ */
+constexpr unsigned int NB_PIN_POTENTIOMETER = 3;
+
+/**
  * @brief The GPIO pins used for the potentiometers.
  * These pins are connected to ADC0, ADC1 and ADC2.
- * @{
  */
-constexpr unsigned int PIN_POTENTIOMETER0 = 26;
-constexpr unsigned int PIN_POTENTIOMETER1 = 27;
-constexpr unsigned int PIN_POTENTIOMETER2 = 28;
-/**@}*/
+constexpr unsigned int PIN_POTENTIOMETERS[NB_PIN_POTENTIOMETER] = {26,27,28};
+
 
 #endif //SYNTHPATHY_GLOBAL_H_

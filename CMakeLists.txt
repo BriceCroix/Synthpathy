@@ -32,6 +32,9 @@ add_executable(Synthpathy
     ${all_SRCS}
 )
 
+# Print all warning and consider them as errors
+add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+
 # Add pico_stdlib library which aggregates commonly used features
 target_link_libraries(Synthpathy
     pico_stdlib

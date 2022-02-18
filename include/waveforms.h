@@ -16,37 +16,34 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "pico/stdlib.h"
-#include "hardware/sync.h"
+#ifndef SYNTHPATHY_WAVEFORMS_H_
+#define SYNTHPATHY_WAVEFORMS_H_
 
 #include "global.h"
-#include "audio_pwm.h"
-#include "Controls.h"
 
-int main() {
-    // Start by overclocking the controler
-    set_sys_clock_khz(SYSTEM_CLOCK_FREQUENCY_KHZ, true);
+enum TypeWaveform
+{
+    square = 0,
+    saw
+};
 
-    // Initialize origin of time
-    g_time_nb_periods_fs = 0;
+/**
+ * @brief Value of a square wave of given parameters.
+ * 
+ * @param time The time in seconds.
+ * @param frequency The frequency in Hz.
+ * @param duty_cycle The duty cycle in percents.
+ * @return audio_int 
+ */
+float square_wave(float time, float frequency, float duty_cycle=50.0f);
 
-    // Initialize everything
-    initialize_pwm_audio();
-    initialize_controls();
-    //TODO : initialize_adc()
-    
-    Controls& controls = Controls::get_instance();
+/**
+ * @brief Value of a rising wave of given parameters.
+ * 
+ * @param time The time in seconds.
+ * @param frequency The frequency in Hz.
+ * @return audio_int 
+ */
+float saw_wave(float time, float frequency);
 
-    while(1)
-    {
-        if(controls.read_buttons())
-        {
-            controls.process_buttons();
-        }
-        // TODO : pop midi queue and instanciate/update ActiveNotePool
-        __wfi(); // Wait for Interrupt
-    }
-
-    // Return is never reached
-    return 1;
-}
+#endif //SYNTHPATHY_WAVEFORMS_H_
