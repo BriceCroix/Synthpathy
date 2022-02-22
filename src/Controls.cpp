@@ -30,12 +30,15 @@ Controls::Controls()
     // Initialize all leds as turned off
     m_leds = 0;
 
-    // New midi events are to be stored in the internal buffer
-    m_midi_buffer = &g_midi_internal_buffer;
-
+    // Default selection
     m_selected_octave = 3;
-
     m_selected_waveform = TypeWaveform::square;
+
+    // Default ADSR
+    m_attack_fs = 0.1 * AUDIO_SAMPLING_FREQUENCY; // 0.1 second
+    m_decay_fs = m_attack_fs;
+    m_sustain = 0.5f;
+    m_release_fs = 2 * m_attack_fs;
 }
 
 bool Controls::read_buttons()
@@ -66,7 +69,7 @@ bool Controls::read_buttons()
 
 void Controls::process_buttons()
 {
-    //TODO : Update LED array
+    // Indicates if the LEDs must be updated
     bool l_leds_need_refresh = false;
 
     // Process the key buttons, this loop only works if the keys are next to each other in the m_buttons variables
@@ -75,13 +78,13 @@ void Controls::process_buttons()
         // If button is pressed and was not pressed before
         if((m_buttons & (1<<i)) && ~(m_buttons_old & (1<<i)))
         {
-            m_midi_buffer->push(midi_event_note_onoff(
+            g_midi_internal_buffer.push(midi_event_note_onoff(
                 MIDI_NOTE_ON, MIDI_DEFAULT_CHANNEL, midi_get_note(m_selected_octave, i-BUTTON_KEY_C0_IDX+1), MIDI_DEFAULT_VELOCITY));
         }
         // If button was pressed before and is not pressed anymore
         else if(~(m_buttons & (1<<i)) && (m_buttons_old & (1<<i)))
         {
-            m_midi_buffer->push(midi_event_note_onoff(
+            g_midi_internal_buffer.push(midi_event_note_onoff(
                 MIDI_NOTE_OFF, MIDI_DEFAULT_CHANNEL, midi_get_note(m_selected_octave, i-BUTTON_KEY_C0_IDX+1), MIDI_DEFAULT_VELOCITY));
         }
     }

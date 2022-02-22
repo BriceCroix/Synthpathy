@@ -29,6 +29,7 @@
 /**
  * @brief This class owns the GPIOs used by the user.
  * It is a singleton, only one instance can ever be created.
+ * This class uses the global midi buffer to push new events.
  */
 struct Controls
 {
@@ -60,12 +61,6 @@ protected:
     uint32_t m_leds = 0;
 
     /**
-     * @brief The adress of the buffer where new midi events are to be stored.
-     * 
-     */
-    CircularBuffer<MidiEvent, SIZE_MIDI_BUFFER> *m_midi_buffer;
-
-    /**
      * @brief The currently selected type of waveform.
      * 
      */
@@ -82,6 +77,30 @@ protected:
      * 
      */
     unsigned int m_selected_octave = 3;
+
+    /**
+     * @brief The attack value of the ADSR envelope, in number of periods of the audio sampling frequency.
+     * 
+     */
+    unsigned int m_attack_fs;
+
+    /**
+     * @brief The decay value of the ADSR envelope, in number of periods of the audio sampling frequency.
+     * 
+     */
+    unsigned int m_decay_fs;
+
+    /**
+     * @brief The sustain value between 0 and 1.
+     * 
+     */
+    float m_sustain;
+
+    /**
+     * @brief The release value of the ADSR envelope, in number of periods of the audio sampling frequency.
+     * 
+     */
+    unsigned int m_release_fs;
 
     // Private constants -------------------------------------------------------
 
@@ -156,6 +175,39 @@ public:
      * @return TypeWaveform 
      */
     inline TypeWaveform get_selected_waveform() const { return m_selected_waveform; }
+
+    /**
+     * @brief Indicates whether midi-through is enabled or not.
+     * 
+     * @return true Midi-through is enabled.
+     * @return false Midi-through is disabled.
+     */
+    inline bool get_midi_through_enabled() const { return m_midi_trough_enabled; }
+
+    /**
+     * @brief The attack value of the ADSR envelope, in number of periods of the audio sampling frequency.
+     * 
+     */
+    inline unsigned int get_attack_fs() const { return m_attack_fs; }
+    
+    /**
+     * @brief The decay value of the ADSR envelope, in number of periods of the audio sampling frequency.
+     * 
+     */
+    inline unsigned int get_decay_fs() const { return m_decay_fs; }
+
+    /**
+     * @brief The sustain value between 0 and 1.
+     * 
+     */
+    inline float get_sustain() const { return m_sustain; }
+
+    /**
+     * @brief The release value of the ADSR envelope, in number of periods of the audio sampling frequency.
+     * 
+     */
+    inline unsigned int get_release_fs() const { return m_release_fs; }
+
 
     /**
      * @brief Reads the buttons and update its internal values accordingly.

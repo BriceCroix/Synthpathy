@@ -53,7 +53,7 @@ constexpr unsigned int PWM_AUDIO_CLK_DIVIDER = 8;
 
 /**
  * @brief The actual sampling frequency used for sample-based computation.
- * 
+ * Variables given in sampling ticks refer to a number of periods of this frequency.
  */
 constexpr float AUDIO_SAMPLING_FREQUENCY = (SYSTEM_CLOCK_FREQUENCY_KHZ*1e3f)
     / (PWM_AUDIO_CLK_DIVIDER * (1<<PWM_AUDIO_BIT_DEPTH_PER_CHANNEL));
@@ -62,16 +62,22 @@ constexpr float AUDIO_SAMPLING_FREQUENCY = (SYSTEM_CLOCK_FREQUENCY_KHZ*1e3f)
 // Global variables ------------------------------------------------------------
 
 /**
- * @brief The time in numbers periods of the sampling frequency.
+ * @brief The time in number of periods of the audio sampling frequency.
  * This variable is very important since all sample-based computation rely on it.
  */
-extern volatile unsigned int g_time_nb_periods_fs;
+extern volatile unsigned int g_time_fs;
 
 /**
  * @brief The internal buffer used by Synthpathy to know what note to play and when.
  * 
  */
 extern CircularBuffer<MidiEvent, SIZE_MIDI_BUFFER> g_midi_internal_buffer;
+
+/**
+ * @brief The analog value of the audio output.
+ * 
+ */
+extern float g_audio_level;
 
 
 // GPIO pins assignation -------------------------------------------------------

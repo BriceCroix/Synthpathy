@@ -22,29 +22,54 @@
 #include "global.h"
 #include "audio_pwm.h"
 #include "Controls.h"
+#include "NoteManager.h"
 
 int main() {
     // Start by overclocking the controler
     set_sys_clock_khz(SYSTEM_CLOCK_FREQUENCY_KHZ, true);
 
     // Initialize origin of time
-    g_time_nb_periods_fs = 0;
+    g_time_fs = 0;
+    // Initialize audio level
+    g_audio_level = 0;
 
     // Initialize everything
     initialize_pwm_audio();
     initialize_controls();
     //TODO : initialize_adc()
+    //TODO : initialize_uart()
+
+    // Empty midi buffer
+    g_midi_internal_buffer.empty();
     
+    // Retrieve the controls instance
     Controls& controls = Controls::get_instance();
+    // Retrieve the notes manager
+    NoteManager& active_note_manager = NoteManager::get_instance();
+
+    unsigned int l_time_fs;
 
     while(1)
     {
+        // Copy time locally
+        l_time_fs = g_time_fs;
+        // Check and process new inputs
         if(controls.read_buttons())
         {
             controls.process_buttons();
         }
-        // TODO : pop midi queue and instanciate/update ActiveNotePool
-        __wfi(); // Wait for Interrupt
+        // Create, release and update notes
+        active_note_manager.update_active_notes(g_time_fs);
+        // Compute audio sample
+        g_audio_level = active_note_manager.get_audio(g_time_fs);
+        // Effects can be added on g_audio_level here
+
+        // Wait for next sample
+        do
+        {
+            __wfi(); // Wait for Interrupt
+        }
+        while (l_time_fs == g_time_fs);
     }
 
     // Return is never reached

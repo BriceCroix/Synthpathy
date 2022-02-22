@@ -20,6 +20,8 @@
 
 // Global variables definition -------------------------------------------------
 
-volatile unsigned int g_time_nb_periods_fs;
+volatile unsigned int g_time_fs;
 
 CircularBuffer<MidiEvent, 4> g_midi_internal_buffer;
+
+float g_audio_level;
