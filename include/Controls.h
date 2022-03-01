@@ -55,6 +55,12 @@ protected:
     uint32_t m_buttons_old = 0;
 
     /**
+     * @brief The index of the output pin that is currently high for the button matrix.
+     * 
+     */
+    unsigned int m_button_matrix_out_idx = 0;
+
+    /**
      * @brief The status of each LED, with one bit per LED.
      * 0 being LED turned off, 1 being LED turned on.
      */
@@ -229,5 +235,28 @@ public:
  * 
  */
 void initialize_controls();
+
+/**
+ * @brief Puts a gpio output to high impedance.
+ * This is simply an alias to configure the gpio as input.
+ * Indeed the gpio MUST NOT be pulled up or down for it to be in high impedance.
+ * @param gpio gpio number.
+ */
+inline void gpio_put_high_z(unsigned int gpio)
+{
+    //gpio_put(gpio, false);
+    gpio_set_dir(gpio, GPIO_IN);
+}
+
+/**
+ * @brief Remove high impedance state from gpio output and put it high.
+ * This reconfigures the gpio as output then puts it high.
+ * @param gpio gpio number.
+ */
+inline void gpio_put_1_from_high_z(unsigned int gpio)
+{
+    gpio_set_dir(gpio, GPIO_OUT);
+    gpio_put(gpio, true);
+}
 
 #endif //SYNTHPATHY_CONTROLS_H_

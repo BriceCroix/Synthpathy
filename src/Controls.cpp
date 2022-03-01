@@ -22,6 +22,10 @@
 
 #include "pico/stdlib.h"
 
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 Controls::Controls()
 {
     // Initialize all buttons as not pressed
@@ -29,6 +33,8 @@ Controls::Controls()
     m_buttons_old = 0;
     // Initialize all leds as turned off
     m_leds = 0;
+    // The first button matrix pin to be high
+    m_button_matrix_out_idx = 0;
 
     // Default selection
     m_selected_octave = 3;
@@ -39,32 +45,51 @@ Controls::Controls()
     m_decay_fs = m_attack_fs;
     m_sustain = 0.5f;
     m_release_fs = 2 * m_attack_fs;
+
+    // Get ready for first button matrix read operation
+    gpio_put_1_from_high_z(PIN_BUTTON_MATRIX_OUT[m_button_matrix_out_idx]);
 }
 
 bool Controls::read_buttons()
 {
+    unsigned int l_gpio_status;
+
+    // Old buttons state are now current state
     m_buttons_old = m_buttons;
-    m_buttons = 0;
+    // Reset bits that are about to be read. NB : ((1<<k)-1 )is k bits with value 1
+    m_buttons &= ~(((1<<NB_PIN_BUTTON_MATRIX_IN)-1) << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN));
 
-    for(unsigned int button_matrix_out_idx = 0; button_matrix_out_idx < NB_PIN_BUTTON_MATRIX_OUT; ++button_matrix_out_idx)
+    // This read operation could be handled by the PIO in order not to update the pin 1 time out of NB_PIN_BUTTON_MATRIX_OUT
+
+    // Output pin is stable from last change and button matrix can be read safely
+    for(unsigned int button_matrix_in_idx = 0; button_matrix_in_idx < NB_PIN_BUTTON_MATRIX_IN; ++button_matrix_in_idx)
     {
-        unsigned int l_gpio_status;
-
-        // TODO : unroll this loop, maybe use gpio_get_all for more efficiency
-
-        // Set one output to high, then read each input, so that each pair of input-output is driven by a different button
-        gpio_put(PIN_BUTTON_MATRIX_OUT[button_matrix_out_idx], true);
-        for(unsigned int button_matrix_in_idx = 0; button_matrix_in_idx < NB_PIN_BUTTON_MATRIX_IN; ++button_matrix_in_idx)
-        {
-            // The following is done because gpio_get does not ensure 1 is returned in case of high state
-            l_gpio_status = gpio_get(PIN_BUTTON_MATRIX_IN[button_matrix_in_idx]) ? 1 : 0;
-            // Unset relevant bit if button is pressed
-            m_buttons |= (l_gpio_status << (button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_OUT + button_matrix_in_idx)); 
-        }
+        // The following is done because gpio_get does not ensure 1 is returned in case of high state
+        l_gpio_status = gpio_get(PIN_BUTTON_MATRIX_IN[button_matrix_in_idx]) ? 1 : 0;
+        // Set relevant bit if button is pressed
+        m_buttons |= (l_gpio_status << ((m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN) + button_matrix_in_idx)); 
     }
+    // Disconnect gpio from matrix in order to read next row of button matrix
+    gpio_put_high_z(PIN_BUTTON_MATRIX_OUT[m_button_matrix_out_idx]);
+    // Increment index of the active row
+    if(++m_button_matrix_out_idx == NB_PIN_BUTTON_MATRIX_OUT)
+    {
+        m_button_matrix_out_idx = 0;
+    }
+    // Set next output to high
+    gpio_put_1_from_high_z(PIN_BUTTON_MATRIX_OUT[m_button_matrix_out_idx]);
+
+    #ifdef DEBUG
+    if(m_buttons != m_buttons_old)
+    {
+        printf("Buttons changed : "); 
+        printf("0x%08x\n", m_buttons);
+    }
+    //printf("Buttons : 0x%08x\n", m_buttons);
+    #endif
 
     // Return true if at least one button has changed
-    return m_buttons == m_buttons_old;
+    return m_buttons != m_buttons_old;
 }
 
 void Controls::process_buttons()
@@ -145,8 +170,10 @@ void initialize_controls()
     for(unsigned int i = 0; i < NB_PIN_BUTTON_MATRIX_OUT; ++i)
     {
         gpio_init(PIN_BUTTON_MATRIX_OUT[i]);
-        gpio_set_dir(PIN_BUTTON_MATRIX_OUT[i], GPIO_OUT);
-        gpio_put(PIN_BUTTON_MATRIX_OUT[i], false);
+        // gpios are not put to GPIO_OUT since high-z state puts them as inputs
+        gpio_put_high_z(PIN_BUTTON_MATRIX_OUT[i]);
+        // These pins must not have any pull in order to be in high-z state
+        gpio_disable_pulls(PIN_BUTTON_MATRIX_OUT[i]);
     }
 
     // Setup the pulled-down inputs for the button matrix
