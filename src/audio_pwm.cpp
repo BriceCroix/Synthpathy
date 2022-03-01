@@ -31,7 +31,9 @@ void initialize_pwm_audio()
     gpio_set_function(PIN_PWM_AUDIO_OUTPUT_L, GPIO_FUNC_PWM);
     gpio_set_function(PIN_PWM_AUDIO_OUTPUT_H, GPIO_FUNC_PWM);
     // Set handle function
-    irq_set_exclusive_handler(PWM_IRQ_WRAP, pwm_interrupt_handler); 
+    pwm_clear_irq(SLICE_PWM_AUDIO_OUTPUT);
+    pwm_set_irq_enabled(SLICE_PWM_AUDIO_OUTPUT, true);
+    irq_set_exclusive_handler(PWM_IRQ_WRAP, pwm_wrap_interrupt_handler);
     irq_set_enabled(PWM_IRQ_WRAP, true);
 
     // Setup PWM for audio output, see global.h for explanation
@@ -46,7 +48,7 @@ void initialize_pwm_audio()
     pwm_set_both_levels(SLICE_PWM_AUDIO_OUTPUT, 0, 0);
 }
 
-void pwm_interrupt_handler()
+void pwm_wrap_interrupt_handler()
 {
     // Clear IRQ flag
     pwm_clear_irq(SLICE_PWM_AUDIO_OUTPUT);

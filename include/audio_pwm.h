@@ -29,6 +29,6 @@ void initialize_pwm_audio();
  * @brief PWM Interrupt Handler which outputs PWM level and keeps track of time. 
  * 
  */
-void pwm_interrupt_handler();
+void pwm_wrap_interrupt_handler();
 
 #endif //SYNTHPATHY_AUDIO_PWM_H_
