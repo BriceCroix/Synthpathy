@@ -18,6 +18,9 @@
 
 #include "pico/stdlib.h"
 #include "hardware/sync.h"
+#ifdef DEBUG
+#include <stdio.h>
+#endif
 
 #include "global.h"
 #include "audio_pwm.h"
@@ -27,6 +30,12 @@
 int main() {
     // Start by overclocking the controler
     set_sys_clock_khz(SYSTEM_CLOCK_FREQUENCY_KHZ, true);
+
+#ifdef DEBUG
+    // Initialize standard output
+    stdio_init_all();
+    printf("========== Synthpathy started with DEBUG enabled ==========\n");
+#endif
 
     // Initialize origin of time
     g_time_fs = 0;

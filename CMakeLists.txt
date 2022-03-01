@@ -41,5 +41,16 @@ target_link_libraries(Synthpathy
     hardware_pwm
 )
 
+if(DEBUG)
+    # Enable usb standard output if DEBUG is specified
+    pico_enable_stdio_usb(Synthpathy 1)
+    # #define DEBUG for compiler
+    add_compile_definitions(DEBUG)
+else()
+    pico_enable_stdio_usb(Synthpathy 0)
+endif()
+# Always disable uart standard output 
+pico_enable_stdio_uart(Synthpathy 0)
+
 # create map/bin/hex/uf2 file in addition to ELF.
 pico_add_extra_outputs(Synthpathy)
