@@ -20,6 +20,10 @@
 
 #include <limits>
 
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 ActiveNote::ActiveNote()
 {
     m_time_stop_fs = 0; 
@@ -36,6 +40,9 @@ ActiveNote::ActiveNote(MidiByte _midi_note, float _velocity, unsigned int _time_
 
     m_time_released_fs = std::numeric_limits<unsigned int>::max();
     m_time_stop_fs = std::numeric_limits<unsigned int>::max();
+    #ifdef DEBUG
+    printf("ActiveNote(%d, %f, %d, %d, %d)\n", m_midi_note, m_velocity, m_time_start_fs, m_attack_fs, m_decay_fs);
+    #endif
 }
 
 
@@ -81,6 +88,10 @@ void ActiveNote::release(unsigned int time_released_fs, float sustain, unsigned 
     m_ADSR_at_release = get_ADSR_envelope(time_released_fs, sustain);
     m_time_released_fs = time_released_fs;
     m_time_stop_fs = m_time_released_fs + m_release_fs;
+
+    #ifdef DEBUG
+    printf("ActiveNote released(%d, %f, %d)\n", m_time_released_fs, sustain, m_release_fs);
+    #endif
 }
 
 

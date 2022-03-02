@@ -128,7 +128,7 @@ bool Controls::read_buttons()
     #ifdef DEBUG
     if(m_buttons != m_buttons_old)
     {
-        printf("Buttons change : 0x%08x\n", m_buttons);
+        printf("Buttons changed : 0x%08x to 0x%08x\n", m_buttons_old, m_buttons);
     }
     #endif
 
@@ -145,7 +145,7 @@ void Controls::process_buttons()
     for(unsigned int i = BUTTON_KEY_C0_IDX; i <= BUTTON_KEY_C1_IDX; ++i)
     {
         // If button is pressed and was not pressed before
-        if((m_buttons & (1<<i)) && ~(m_buttons_old & (1<<i)))
+        if((m_buttons & (1<<i)) && !(m_buttons_old & (1<<i)))
         {
             const MidiEvent midi_event = midi_event_note_onoff(
                 MIDI_NOTE_ON, MIDI_DEFAULT_CHANNEL, midi_get_note(m_selected_octave, i-BUTTON_KEY_C0_IDX), MIDI_DEFAULT_VELOCITY);
@@ -155,7 +155,7 @@ void Controls::process_buttons()
             #endif
         }
         // If button was pressed before and is not pressed anymore
-        else if(~(m_buttons & (1<<i)) && (m_buttons_old & (1<<i)))
+        else if(!(m_buttons & (1<<i)) && (m_buttons_old & (1<<i)))
         {
             const MidiEvent midi_event = midi_event_note_onoff(
                 MIDI_NOTE_OFF, MIDI_DEFAULT_CHANNEL, midi_get_note(m_selected_octave, i-BUTTON_KEY_C0_IDX), MIDI_DEFAULT_VELOCITY);

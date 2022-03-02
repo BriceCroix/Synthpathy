@@ -90,7 +90,7 @@ protected:
      * @brief The default velocity value for new note on/off midi events.
      * 
      */
-    static constexpr MidiByte MIDI_DEFAULT_VELOCITY = 0x8F;
+    static constexpr MidiByte MIDI_DEFAULT_VELOCITY = 0x7F;
 
 
     // Private members ---------------------------------------------------------

@@ -20,6 +20,10 @@
 
 #include "Controls.h"
 
+#ifdef DEBUG
+#include <stdio.h>
+#endif
+
 NoteManager::NoteManager()
 {
     for(unsigned int i = 0; i < NB_ACTIVE_NOTES; ++i)
@@ -43,6 +47,11 @@ void NoteManager::update_active_notes(unsigned int time_fs)
         const MidiByte l_midi_channel = l_event & MIDI_CHANNEL_MSK;
         const MidiByte l_midi_data1 = l_event >> 8;
         const MidiByte l_midi_data2 = l_event >> 16;
+
+        #ifdef DEBUG
+        printf("MIDI event popped : 0x%06x\n", l_event);
+        #endif
+
         // Switch on event type
         switch(l_midi_type_event)
         {
@@ -54,7 +63,11 @@ void NoteManager::update_active_notes(unsigned int time_fs)
                 {
                     if(!m_active_notes_pool[i].is_alive(time_fs))
                     {
-                        float velocity = static_cast<float>(l_midi_data2) / 127;
+                        #ifdef DEBUG
+                        printf("Found available note at index %d\n", i);
+                        #endif
+
+                        const float velocity = static_cast<float>(l_midi_data2) / 0x7F;
                         // Add the new note to the pool
                         m_active_notes_pool[i] = ActiveNote(l_midi_data1, velocity, time_fs, controls.get_attack_fs(), controls.get_decay_fs());
                         break;
@@ -72,6 +85,10 @@ void NoteManager::update_active_notes(unsigned int time_fs)
                     // Search for this midi note that is not released yet
                     if(m_active_notes_pool[i].get_midi_note() == l_midi_data1 && !m_active_notes_pool[i].is_released())
                     {
+                        #ifdef DEBUG
+                        printf("Found note to release at index %d\n", i);
+                        #endif
+
                         // Release
                         m_active_notes_pool[i].release(time_fs, controls.get_sustain(), controls.get_release_fs());
                         break;
