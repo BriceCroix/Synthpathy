@@ -31,6 +31,14 @@ Controls::Controls()
     // Initialize all buttons as not pressed
     m_buttons = 0;
     m_buttons_old = 0;
+    // Initalize all buttons as not pressed since a certain time
+    for(unsigned int row = 0; row < NB_PIN_BUTTON_MATRIX_OUT; ++row)
+    {
+        for(unsigned int past = 0; past < NB_STABLE_BUTTON_STATES+1; ++past)
+        {
+            m_buttons_row_past[row][past] = 0;
+        }
+    }
     // Initialize all leds as turned off
     m_leds = 0;
     // The first button matrix pin to be high
@@ -52,23 +60,61 @@ Controls::Controls()
 
 bool Controls::read_buttons()
 {
-    unsigned int l_gpio_status;
+    // This read operation could be handled by the PIO in order not to update the pin 1 time out of NB_PIN_BUTTON_MATRIX_OUT
 
     // Old buttons state are now current state
     m_buttons_old = m_buttons;
-    // Reset bits that are about to be read. NB : ((1<<k)-1 )is k bits with value 1
-    m_buttons &= ~(((1<<NB_PIN_BUTTON_MATRIX_IN)-1) << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN));
 
-    // This read operation could be handled by the PIO in order not to update the pin 1 time out of NB_PIN_BUTTON_MATRIX_OUT
-
-    // Output pin is stable from last change and button matrix can be read safely
-    for(unsigned int button_matrix_in_idx = 0; button_matrix_in_idx < NB_PIN_BUTTON_MATRIX_IN; ++button_matrix_in_idx)
+    // Shift values of buttons past states for current row
+    for(unsigned int i = NB_STABLE_BUTTON_STATES; i > 0; --i)
     {
-        // The following is done because gpio_get does not ensure 1 is returned in case of high state
-        l_gpio_status = gpio_get(PIN_BUTTON_MATRIX_IN[button_matrix_in_idx]) ? 1 : 0;
-        // Set relevant bit if button is pressed
-        m_buttons |= (l_gpio_status << ((m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN) + button_matrix_in_idx)); 
+        m_buttons_row_past[m_button_matrix_out_idx][i] = m_buttons_row_past[m_button_matrix_out_idx][i-1];
     }
+    // Assign current buttons state by reading all buttons, and puting relevant bits in lsb
+    // WARNING : this only works if the pins used as input are continguous and ordered.
+    m_buttons_row_past[m_button_matrix_out_idx][0] = (gpio_get_all() >> PIN_BUTTON_MATRIX_IN[0]) & ((1<<NB_PIN_BUTTON_MATRIX_IN) - 1);
+
+    #ifdef DEBUG
+    // Check if there is a change happening
+    bool l_debug_transient = false;
+    for(unsigned int i = 0; i < NB_STABLE_BUTTON_STATES; ++i)
+    {
+        if(m_buttons_row_past[m_button_matrix_out_idx][i] != m_buttons_row_past[m_button_matrix_out_idx][i+1])
+        {
+            l_debug_transient = true;
+        }
+    }
+    if(l_debug_transient)
+    {
+        printf("Buttons transient !\n");
+    }
+    #endif
+
+    // Check if these buttons have changed
+    if(m_buttons_row_past[m_button_matrix_out_idx][0] != m_buttons_row_past[m_button_matrix_out_idx][NB_STABLE_BUTTON_STATES])
+    {
+        // Check if value is stable
+        bool l_is_stable = true;
+        for(unsigned int i = 0; i < NB_STABLE_BUTTON_STATES-1; ++i)
+        {
+            if(m_buttons_row_past[m_button_matrix_out_idx][i] != m_buttons_row_past[m_button_matrix_out_idx][i+1])
+            {
+                l_is_stable = false;
+            }
+        }
+        // If value is stable, validate it by copying to m_buttons
+        if(l_is_stable)
+        {
+            // Reset relevant bits
+            m_buttons &= ~(((1<<NB_PIN_BUTTON_MATRIX_IN) - 1) << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN));
+            // Copy bits
+            m_buttons |= m_buttons_row_past[m_button_matrix_out_idx][0] << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN);
+            #ifdef DEBUG
+            printf("Buttons stable : 0x%08x\n", m_buttons);
+            #endif
+        }
+    }
+
     // Disconnect gpio from matrix in order to read next row of button matrix
     gpio_put_high_z(PIN_BUTTON_MATRIX_OUT[m_button_matrix_out_idx]);
     // Increment index of the active row
@@ -82,10 +128,8 @@ bool Controls::read_buttons()
     #ifdef DEBUG
     if(m_buttons != m_buttons_old)
     {
-        printf("Buttons changed : "); 
-        printf("0x%08x\n", m_buttons);
+        printf("Buttons change : 0x%08x\n", m_buttons);
     }
-    //printf("Buttons : 0x%08x\n", m_buttons);
     #endif
 
     // Return true if at least one button has changed
