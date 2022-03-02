@@ -82,7 +82,7 @@ protected:
      * @brief The currently selected octave.
      * 
      */
-    unsigned int m_selected_octave = 3;
+    int m_selected_octave = 3;
 
     /**
      * @brief The attack value of the ADSR envelope, in number of periods of the audio sampling frequency.

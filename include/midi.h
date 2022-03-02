@@ -149,12 +149,12 @@ constexpr float MIDI_FREQUENCIES_HZ[128] =
  * @brief Returns the number corresponding to a specific note in midi standard.
  * The midi standard describes notes from C-1 (~8 Hz) to G9 (~12544 Hz)
  * @param octave The octave between -1 and 9. 
- * @param note The desired note with 1 for C, 2 for C#, 3 for D, ... , 12 for B.
+ * @param note The desired note with 0 for C, 1 for C#, 4 for D, ... , 11 for B.
  * @return MidiByte 
  */
 inline MidiByte midi_get_note(int octave, unsigned int note)
 {
-    return (12 + (note+1) * octave);
+    return ((12 * (octave+1)) + note);
 }
 
 /**
@@ -168,7 +168,7 @@ inline MidiByte midi_get_note(int octave, unsigned int note)
  */
 inline MidiEvent midi_event_note_onoff(MidiByte event_type, unsigned int channel, MidiByte note, MidiByte velocity)
 {
-    return (event_type & channel) & (note << 8) & (velocity << 16);
+    return (event_type | channel) | (note << 8) | (velocity << 16);
 }
 
 #endif //SYNTHPATHY_MIDI_H_

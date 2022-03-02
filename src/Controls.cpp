@@ -103,25 +103,45 @@ void Controls::process_buttons()
         // If button is pressed and was not pressed before
         if((m_buttons & (1<<i)) && ~(m_buttons_old & (1<<i)))
         {
-            g_midi_internal_buffer.push(midi_event_note_onoff(
-                MIDI_NOTE_ON, MIDI_DEFAULT_CHANNEL, midi_get_note(m_selected_octave, i-BUTTON_KEY_C0_IDX+1), MIDI_DEFAULT_VELOCITY));
+            const MidiEvent midi_event = midi_event_note_onoff(
+                MIDI_NOTE_ON, MIDI_DEFAULT_CHANNEL, midi_get_note(m_selected_octave, i-BUTTON_KEY_C0_IDX), MIDI_DEFAULT_VELOCITY);
+            g_midi_internal_buffer.push(midi_event);
+            #ifdef DEBUG
+            printf("MIDI NoteOn pushed : 0x%06x\n", midi_event);
+            #endif
         }
         // If button was pressed before and is not pressed anymore
         else if(~(m_buttons & (1<<i)) && (m_buttons_old & (1<<i)))
         {
-            g_midi_internal_buffer.push(midi_event_note_onoff(
-                MIDI_NOTE_OFF, MIDI_DEFAULT_CHANNEL, midi_get_note(m_selected_octave, i-BUTTON_KEY_C0_IDX+1), MIDI_DEFAULT_VELOCITY));
+            const MidiEvent midi_event = midi_event_note_onoff(
+                MIDI_NOTE_OFF, MIDI_DEFAULT_CHANNEL, midi_get_note(m_selected_octave, i-BUTTON_KEY_C0_IDX), MIDI_DEFAULT_VELOCITY);
+            g_midi_internal_buffer.push(midi_event);
+            #ifdef DEBUG
+            printf("MIDI NoteOff pushed : 0x%06x\n", midi_event);
+            #endif
         }
     }
 
     // Process octave change, and assume octave up and down are not pressed at the same time
     if((m_buttons & (1<<BUTTON_OCTAVE_DOWN_IDX)) && ~(m_buttons_old & (1<<BUTTON_OCTAVE_DOWN_IDX)))
     {
-        if(m_selected_octave > -1) m_selected_octave--;
+        if(m_selected_octave > -1)
+        {
+            m_selected_octave--;
+        }
+        #ifdef DEBUG
+        printf("Octave Down ! Is now %d\n", m_selected_octave);
+        #endif
     }
     else if((m_buttons & (1<<BUTTON_OCTAVE_UP_IDX)) && ~(m_buttons_old & (1<<BUTTON_OCTAVE_UP_IDX)))
     {
-        if(m_selected_octave < 8) m_selected_octave++;
+        if(m_selected_octave < 8)
+        {
+            m_selected_octave++;
+        }
+        #ifdef DEBUG
+        printf("Octave Up ! Is now %d\n", m_selected_octave);
+        #endif
     }
 
     // Process waveform change
@@ -139,6 +159,9 @@ void Controls::process_buttons()
             m_leds |= (1<<LED_WAVEFORM_SQUARE_ENABLED_IDX);
         }
         l_leds_need_refresh = true;
+        #ifdef DEBUG
+        printf("Waveform change ! Is now %d", m_selected_waveform);
+        #endif
     }
 
     // Process midi-through enable button
@@ -151,6 +174,9 @@ void Controls::process_buttons()
     if(l_leds_need_refresh)
     {
         write_leds();
+        #ifdef DEBUG
+        printf("LEDs refreshed ! Are now %08x", m_leds);
+        #endif
     }
 
 }
