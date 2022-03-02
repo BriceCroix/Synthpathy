@@ -74,7 +74,7 @@ bool Controls::read_buttons()
     // WARNING : this only works if the pins used as input are continguous and ordered.
     m_buttons_row_past[m_button_matrix_out_idx][0] = (gpio_get_all() >> PIN_BUTTON_MATRIX_IN[0]) & ((1<<NB_PIN_BUTTON_MATRIX_IN) - 1);
 
-    #ifdef DEBUG
+    #if DEBUG > 1
     // Check if there is a change happening
     bool l_debug_transient = false;
     for(unsigned int i = 0; i < NB_STABLE_BUTTON_STATES; ++i)
@@ -109,7 +109,7 @@ bool Controls::read_buttons()
             m_buttons &= ~(((1<<NB_PIN_BUTTON_MATRIX_IN) - 1) << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN));
             // Copy bits
             m_buttons |= m_buttons_row_past[m_button_matrix_out_idx][0] << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN);
-            #ifdef DEBUG
+            #if DEBUG > 1
             printf("Buttons stable : 0x%08x\n", m_buttons);
             #endif
         }

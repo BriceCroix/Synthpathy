@@ -45,7 +45,7 @@ if(DEBUG)
     # Enable usb standard output if DEBUG is specified
     pico_enable_stdio_usb(Synthpathy 1)
     # #define DEBUG for compiler
-    add_compile_definitions(DEBUG)
+    add_compile_definitions(DEBUG=${DEBUG})
 else()
     pico_enable_stdio_usb(Synthpathy 0)
 endif()
