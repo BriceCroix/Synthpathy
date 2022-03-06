@@ -76,9 +76,17 @@ int main() {
         // Wait for next sample
         do
         {
-            __wfi(); // Wait for Interrupt
+            tight_loop_contents();// __wfi(); // Wait for Interrupt
         }
         while (l_time_fs == g_time_fs);
+
+        #ifdef DEBUG
+        // Check for missed sample
+        if(g_time_fs != l_time_fs+1)
+        {
+            printf("/!\\ MISSED SAMPLE(s) between t=%u and t=%u /!\\\n", l_time_fs, g_time_fs);
+        }
+        #endif
     }
 
     // Return is never reached

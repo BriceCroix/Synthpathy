@@ -105,8 +105,6 @@ void NoteManager::update_active_notes(unsigned int time_fs)
                 // Unhandled events
                 break;
         }
-
-        // TODO : if(controls.get_midi_through_enabled()) midi_out_send(l_event)
     }
 }
 

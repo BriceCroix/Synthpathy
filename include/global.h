@@ -31,7 +31,7 @@
  * @brief The System clock frequency in kHz, required for overclocking.
  * 
  */
-constexpr unsigned int SYSTEM_CLOCK_FREQUENCY_KHZ = 176000U;
+constexpr unsigned int SYSTEM_CLOCK_FREQUENCY_KHZ = 192000U;
 
 /**
  * @brief The number of midi events that can be stored in the midi buffer.
@@ -47,15 +47,15 @@ constexpr unsigned int PWM_AUDIO_BIT_DEPTH_PER_CHANNEL = 8;
 
 /**
  * @brief The clock divider used by the pwm audio output.
- * NB : 176MHz / (8*256) = 85937.5Hz of sampling frequency. 
+ * NB : 192MHz / (16*256) = 46875 Hz of sampling frequency. 
  */
-constexpr unsigned int PWM_AUDIO_CLK_DIVIDER = 8;
+constexpr unsigned int PWM_AUDIO_CLK_DIVIDER = 16;
 
 /**
  * @brief The actual sampling frequency used for sample-based computation.
  * Variables given in sampling ticks refer to a number of periods of this frequency.
  */
-constexpr float AUDIO_SAMPLING_FREQUENCY = (SYSTEM_CLOCK_FREQUENCY_KHZ*1e3f)
+constexpr unsigned int AUDIO_SAMPLING_FREQUENCY = (SYSTEM_CLOCK_FREQUENCY_KHZ*1000)
     / (PWM_AUDIO_CLK_DIVIDER * (1<<PWM_AUDIO_BIT_DEPTH_PER_CHANNEL));
 
 

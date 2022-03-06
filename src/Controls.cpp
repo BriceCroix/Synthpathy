@@ -62,6 +62,24 @@ bool Controls::read_buttons()
 {
     // This read operation could be handled by the PIO in order not to update the pin 1 time out of NB_PIN_BUTTON_MATRIX_OUT
 
+    /*
+    Here is how the software debouncing works : Let us consider a single bit corresponding to
+    a single button, same one for m_buttons, m_buttons_old, and m_buttons_row_past.
+    As a reminder, the latter keeps tracks of the previous states of the button, and its current
+    value is copied to m_buttons when a change is verified (at the end of a transient).
+    Here is an example of what can be read when the button is pressed (p) and released (r), with
+    a lot of bouncing on the release :
+
+    action                   |     p             r
+    m_buttons_row_past[X][0] | 000011111111111111011100100010000
+    button transient         | ____---___________--------------_
+    button verified change   | ______-______________-_____-___-_
+    m_buttons                | 000000111111111111111111111000000
+    m_buttons_old            | ?00000011111111111111111111100000
+    registered action        |       p                    r     
+
+    */
+
     // Old buttons state are now current state
     m_buttons_old = m_buttons;
 
@@ -206,12 +224,6 @@ void Controls::process_buttons()
         #ifdef DEBUG
         printf("Waveform change ! Is now %d", m_selected_waveform);
         #endif
-    }
-
-    // Process midi-through enable button
-    if((m_buttons & (1<<BUTTON_MIDI_THROUGH_ENABLE_IDX)) && ~(m_buttons_old & (1<<BUTTON_MIDI_THROUGH_ENABLE_IDX)))
-    {
-        m_midi_trough_enabled = !m_midi_trough_enabled;
     }
 
     // Finally update leds if necessary

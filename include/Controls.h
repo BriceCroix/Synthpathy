@@ -63,7 +63,6 @@ protected:
     static constexpr unsigned int BUTTON_OCTAVE_DOWN_IDX = 13;
     static constexpr unsigned int BUTTON_OCTAVE_UP_IDX = 14;
     static constexpr unsigned int BUTTON_WAVEFORM_SELECT_IDX = 15;
-    static constexpr unsigned int BUTTON_MIDI_THROUGH_ENABLE_IDX = 16;
     /**@}*/
 
     /**
@@ -136,12 +135,6 @@ protected:
     TypeWaveform m_selected_waveform = TypeWaveform::square;
 
     /**
-     * @brief Is midi-through enabled ?
-     * Midi-through means that the midi input events are copied to the midi output.
-     */
-    bool m_midi_trough_enabled = false;
-
-    /**
      * @brief The currently selected octave.
      * 
      */
@@ -199,14 +192,6 @@ public:
      * @return TypeWaveform 
      */
     inline TypeWaveform get_selected_waveform() const { return m_selected_waveform; }
-
-    /**
-     * @brief Indicates whether midi-through is enabled or not.
-     * 
-     * @return true Midi-through is enabled.
-     * @return false Midi-through is disabled.
-     */
-    inline bool get_midi_through_enabled() const { return m_midi_trough_enabled; }
 
     /**
      * @brief The attack value of the ADSR envelope, in number of periods of the audio sampling frequency.
