@@ -40,6 +40,12 @@ constexpr unsigned int SYSTEM_CLOCK_FREQUENCY_KHZ = 192000U;
 constexpr unsigned int SIZE_MIDI_BUFFER = 4;
 
 /**
+ * @brief The number of samples that are to be computed in advance.
+ * 
+ */
+constexpr unsigned int SIZE_AUDIO_BUFFER = 128;
+
+/**
  * @brief The number of bits used by one channel the pwm audio output slice.
  * 
  */

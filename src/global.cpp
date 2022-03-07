@@ -24,4 +24,4 @@ volatile unsigned int g_time_fs;
 
 CircularBuffer<MidiEvent, 4> g_midi_internal_buffer;
 
-float g_audio_level;
+CircularBuffer<float, SIZE_AUDIO_BUFFER> g_output_audio_buffer;

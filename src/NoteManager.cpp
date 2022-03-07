@@ -41,7 +41,7 @@ void NoteManager::update_active_notes(unsigned int time_fs)
     while(!g_midi_internal_buffer.is_empty())
     {
         // At least one midi event must be processed
-        const MidiEvent l_event = g_midi_internal_buffer.pop();
+        const MidiEvent l_event = g_midi_internal_buffer.pop_fast();
         // Decode the event
         const MidiByte l_midi_type_event = l_event & MIDI_STATUS_MSK;
         const MidiByte l_midi_channel = l_event & MIDI_CHANNEL_MSK;

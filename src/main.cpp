@@ -38,30 +38,33 @@ int main() {
 #endif
 
     // Initialize origin of time
-    g_time_fs = 0;
-    // Initialize audio level
-    g_audio_level = 0;
+    g_time_fs = SIZE_AUDIO_BUFFER;
+    // Initialize audio level with samples ready to be popped
+    g_output_audio_buffer.empty();
+    g_output_audio_buffer.fill(0.f);
+    // Initialize midi buffer
+    g_midi_internal_buffer.empty();
 
     // Initialize everything
     initialize_pwm_audio();
     initialize_controls();
     //TODO : initialize_adc()
     //TODO : initialize_uart()
-
-    // Empty midi buffer
-    g_midi_internal_buffer.empty();
     
     // Retrieve the controls instance
     Controls& controls = Controls::get_instance();
     // Retrieve the notes manager
     NoteManager& active_note_manager = NoteManager::get_instance();
 
-    unsigned int l_time_fs;
+    // A local value of time, that can be a little late on the global one
+    unsigned int l_time_fs = 0;
 
+    // Start the audio output
+    start_pwm_audio();
+
+    // Start main loop
     while(1)
     {
-        // Copy time locally
-        l_time_fs = g_time_fs;
         // Check and process new inputs
         if(controls.read_buttons())
         {
@@ -69,24 +72,25 @@ int main() {
         }
         // Create, release and update notes
         active_note_manager.update_active_notes(g_time_fs);
-        // Compute audio sample
-        g_audio_level = active_note_manager.get_audio(g_time_fs);
-        // Effects can be added on g_audio_level here
 
-        // Wait for next sample
-        do
+        // Compute next samples
+        while(l_time_fs != g_time_fs)
         {
-            tight_loop_contents();// __wfi(); // Wait for Interrupt
-        }
-        while (l_time_fs == g_time_fs);
+            // Compute audio sample
+            g_output_audio_buffer.push(active_note_manager.get_audio(l_time_fs));
+            // Effects can be added on g_audio_level here
 
-        #ifdef DEBUG
-        // Check for missed sample
-        if(g_time_fs != l_time_fs+1)
-        {
-            printf("/!\\ MISSED SAMPLE(s) between t=%u and t=%u /!\\\n", l_time_fs, g_time_fs);
+            // Increment time
+            l_time_fs++;
+
+            #ifdef DEBUG
+            if(g_output_audio_buffer.get_count() == 0)
+            {
+                printf("\n/!\\/!\\/!\\ Could not compute samples fast enough. Reset needed /!\\/!\\/!\\\n");
+                return 1;
+            }
+            #endif
         }
-        #endif
     }
 
     // Return is never reached

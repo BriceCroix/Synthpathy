@@ -20,7 +20,7 @@
 #define SYNTHPATHY_AUDIO_PWM_H_
 
 /**
- * @brief Initialize pwm audio pin and interruts for audio use.
+ * @brief Initialize pwm audio pin and interrupts for audio use.
  * 
  */
 void initialize_pwm_audio();
@@ -30,5 +30,12 @@ void initialize_pwm_audio();
  * 
  */
 void pwm_wrap_interrupt_handler();
+
+/**
+ * @brief Starts the pwm.
+ * 
+ */
+void start_pwm_audio();
+
 
 #endif //SYNTHPATHY_AUDIO_PWM_H_

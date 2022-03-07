@@ -40,13 +40,14 @@ void initialize_pwm_audio()
     pwm_config config = pwm_get_default_config();
     pwm_config_set_clkdiv(&config, PWM_AUDIO_CLK_DIVIDER); 
     pwm_config_set_wrap(&config, (1<<PWM_AUDIO_BIT_DEPTH_PER_CHANNEL)-1);
-    pwm_init(SLICE_PWM_AUDIO_OUTPUT, &config, true);
+    pwm_init(SLICE_PWM_AUDIO_OUTPUT, &config, false);
 
     // Initialize the PWM audio output to 0 (on low and high bytes)
     //pwm_set_gpio_level(PIN_PWM_AUDIO_OUTPUT_L, 0);
     //pwm_set_gpio_level(PIN_PWM_AUDIO_OUTPUT_H, 0);
     pwm_set_both_levels(SLICE_PWM_AUDIO_OUTPUT, 0, 0);
 }
+
 
 void pwm_wrap_interrupt_handler()
 {
@@ -56,9 +57,16 @@ void pwm_wrap_interrupt_handler()
     g_time_fs++;
 
     // Set the audio output to relevant value
-    uint16_t l_int_audio_value = (g_audio_level + 1) * std::numeric_limits<uint16_t>::max() / 2;
+    const float l_audio_sample = g_output_audio_buffer.pop();
+    uint16_t l_int_audio_value = (l_audio_sample + 1) * std::numeric_limits<uint16_t>::max() / 2;
     // Set low byte and high byte on both pwm channels.
     //pwm_set_gpio_level(PIN_PWM_AUDIO_OUTPUT_L, l_int_audio_value & 0x00FF);
     //pwm_set_gpio_level(PIN_PWM_AUDIO_OUTPUT_H, l_int_audio_value & 0xFF00);
     pwm_set_both_levels(SLICE_PWM_AUDIO_OUTPUT, l_int_audio_value & 0x00FF, l_int_audio_value & 0xFF00);
+}
+
+
+void start_pwm_audio()
+{
+    pwm_set_enabled(SLICE_PWM_AUDIO_OUTPUT, true);
 }
