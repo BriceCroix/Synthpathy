@@ -77,6 +77,7 @@ protected:
      * @{
      */
     static constexpr unsigned int LED_WAVEFORM_SQUARE_ENABLED_IDX = 0;
+    static constexpr unsigned int LED_WAVEFORM_SAW_ENABLED_IDX = 1;
     /**@}*/
 
     /**

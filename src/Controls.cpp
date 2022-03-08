@@ -45,6 +45,7 @@ Controls::Controls()
     // Default selection
     m_selected_octave = 3;
     m_selected_waveform = TypeWaveform::square;
+    m_leds |= (1<<LED_WAVEFORM_SQUARE_ENABLED_IDX);
 
     // Default ADSR
     m_attack_fs = 0.1 * AUDIO_SAMPLING_FREQUENCY; // 0.1 second
@@ -54,6 +55,8 @@ Controls::Controls()
 
     // Get ready for first button matrix read operation
     gpio_put_1_from_high_z(PIN_BUTTON_MATRIX_OUT[m_button_matrix_out_idx]);
+    // Turn on leds
+    write_leds();
 }
 
 
@@ -184,16 +187,18 @@ void Controls::process_buttons()
         {
             m_selected_waveform = TypeWaveform::saw;
             m_leds &= ~(1<<LED_WAVEFORM_SQUARE_ENABLED_IDX);
+            m_leds |= (1<<LED_WAVEFORM_SAW_ENABLED_IDX);
         }
         // There are only two waveforms possible
         else
         {
             m_selected_waveform = TypeWaveform::square;
+            m_leds &= ~(1<<LED_WAVEFORM_SAW_ENABLED_IDX);
             m_leds |= (1<<LED_WAVEFORM_SQUARE_ENABLED_IDX);
         }
         l_leds_need_refresh = true;
         #ifdef DEBUG
-        printf("Waveform change ! Is now %d", m_selected_waveform);
+        printf("Waveform change ! Is now %d\n", m_selected_waveform);
         #endif
     }
 
@@ -202,7 +207,7 @@ void Controls::process_buttons()
     {
         write_leds();
         #ifdef DEBUG
-        printf("LEDs refreshed ! Are now %08x", m_leds);
+        printf("LEDs refreshed ! Are now 0x%08x\n", m_leds);
         #endif
     }
 
