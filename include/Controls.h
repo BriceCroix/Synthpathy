@@ -69,7 +69,7 @@ protected:
      * @brief The number of times a button must be seen with the same value to be considered stable.
      * 
      */
-    static constexpr unsigned int NB_STABLE_BUTTON_STATES = 3;
+    static constexpr unsigned int BUTTONS_STABILITY_THRESHOLD = 4;
 
     /**
      * @brief The indices of each LED signification.
@@ -109,12 +109,17 @@ protected:
     uint32_t m_buttons_old = 0;
 
     /**
-     * @brief The past status of the button matrix, per row.
-     * Example : m_buttons_row_evolution[1][3] is the status of
-     * buttons NB_PIN_BUTTON_MATRIX_IN to 2*NB_PIN_BUTTON_MATRIX_IN-1,
-     * as they were 3 read operations in the past.
+     * @brief The raw status of the buttons, without debounce.
+     * 
      */
-    uint8_t m_buttons_row_past[NB_PIN_BUTTON_MATRIX_OUT][NB_STABLE_BUTTON_STATES+1];
+    uint32_t m_buttons_raw = 0;
+
+    /**
+     * @brief An array to keep track of the stability of the buttons.
+     * This counter is incremented each time a button has been seen with the
+     * same value.
+     */
+    unsigned int m_buttons_stability_count[NB_PIN_BUTTON_MATRIX_OUT];
 
     /**
      * @brief The index of the output pin that is currently high for the button matrix.
@@ -242,7 +247,6 @@ void initialize_controls();
 /**
  * @brief Puts a gpio output to high impedance.
  * This is simply an alias to configure the gpio as input.
- * Indeed the gpio MUST NOT be pulled up or down for it to be in high impedance.
  * @param gpio gpio number.
  */
 inline void gpio_put_high_z(unsigned int gpio)

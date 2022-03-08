@@ -77,11 +77,9 @@ int main() {
         while(l_time_fs != g_time_fs)
         {
             // Compute audio sample
-            g_output_audio_buffer.push(active_note_manager.get_audio(l_time_fs));
-            // Effects can be added on g_audio_level here
+            const float l_audio_sample = active_note_manager.get_audio(l_time_fs);
 
-            // Increment time
-            l_time_fs++;
+            // Effects can be added on the audio sample here
 
             #ifdef DEBUG
             if(g_output_audio_buffer.get_count() == 0)
@@ -90,6 +88,12 @@ int main() {
                 return 1;
             }
             #endif
+
+            // Push audio sample in buffer
+            g_output_audio_buffer.push(l_audio_sample);
+
+            // Increment time
+            l_time_fs++;
         }
     }
 

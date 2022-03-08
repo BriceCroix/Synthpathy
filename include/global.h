@@ -83,7 +83,7 @@ extern CircularBuffer<MidiEvent, SIZE_MIDI_BUFFER> g_midi_internal_buffer;
  * @brief The analog value of the audio output.
  * 
  */
-extern float g_audio_level;
+extern CircularBuffer<float, SIZE_AUDIO_BUFFER> g_output_audio_buffer;
 
 
 // GPIO pins assignation -------------------------------------------------------

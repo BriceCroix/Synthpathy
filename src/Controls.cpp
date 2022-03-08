@@ -26,18 +26,16 @@
 #include <stdio.h>
 #endif
 
+
 Controls::Controls()
 {
     // Initialize all buttons as not pressed
     m_buttons = 0;
     m_buttons_old = 0;
-    // Initalize all buttons as not pressed since a certain time
+    // Initalize all buttons as instable
     for(unsigned int row = 0; row < NB_PIN_BUTTON_MATRIX_OUT; ++row)
     {
-        for(unsigned int past = 0; past < NB_STABLE_BUTTON_STATES+1; ++past)
-        {
-            m_buttons_row_past[row][past] = 0;
-        }
+        m_buttons_stability_count[row] = 0;
     }
     // Initialize all leds as turned off
     m_leds = 0;
@@ -58,80 +56,52 @@ Controls::Controls()
     gpio_put_1_from_high_z(PIN_BUTTON_MATRIX_OUT[m_button_matrix_out_idx]);
 }
 
+
 bool Controls::read_buttons()
 {
     // This read operation could be handled by the PIO in order not to update the pin 1 time out of NB_PIN_BUTTON_MATRIX_OUT
 
-    /*
-    Here is how the software debouncing works : Let us consider a single bit corresponding to
-    a single button, same one for m_buttons, m_buttons_old, and m_buttons_row_past.
-    As a reminder, the latter keeps tracks of the previous states of the button, and its current
-    value is copied to m_buttons when a change is verified (at the end of a transient).
-    Here is an example of what can be read when the button is pressed (p) and released (r), with
-    a lot of bouncing on the release :
-
-    action                   |     p             r
-    m_buttons_row_past[X][0] | 000011111111111111011100100010000
-    button transient         | ____---___________--------------_
-    button verified change   | ______-______________-_____-___-_
-    m_buttons                | 000000111111111111111111111000000
-    m_buttons_old            | ?00000011111111111111111111100000
-    registered action        |       p                    r     
-
-    */
-
     // Old buttons state are now current state
     m_buttons_old = m_buttons;
 
-    // Shift values of buttons past states for current row
-    for(unsigned int i = NB_STABLE_BUTTON_STATES; i > 0; --i)
-    {
-        m_buttons_row_past[m_button_matrix_out_idx][i] = m_buttons_row_past[m_button_matrix_out_idx][i-1];
-    }
-    // Assign current buttons state by reading all buttons, and puting relevant bits in lsb
-    // WARNING : this only works if the pins used as input are continguous and ordered.
-    m_buttons_row_past[m_button_matrix_out_idx][0] = (gpio_get_all() >> PIN_BUTTON_MATRIX_IN[0]) & ((1<<NB_PIN_BUTTON_MATRIX_IN) - 1);
+    // A bit mask with NB_PIN_BUTTON_MATRIX_IN 1's.
+    constexpr uint32_t l_input_mask = (1U << NB_PIN_BUTTON_MATRIX_IN) - 1;
 
-    #if DEBUG > 1
-    // Check if there is a change happening
-    bool l_debug_transient = false;
-    for(unsigned int i = 0; i < NB_STABLE_BUTTON_STATES; ++i)
+    // Reading all buttons of this row, and put relevant bits in lsb
+    // WARNING : this only works if the pins used as input are contiguous and ordered.
+    const uint32_t l_buttons_inputs = (gpio_get_all() >> PIN_BUTTON_MATRIX_IN[0]) & l_input_mask;
+    // Retrieve last status of these buttons
+    const uint32_t l_buttons_inputs_prev = (m_buttons_raw >> (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN)) & l_input_mask;
+    // Update stability of these buttons
+    if(l_buttons_inputs == l_buttons_inputs_prev)
     {
-        if(m_buttons_row_past[m_button_matrix_out_idx][i] != m_buttons_row_past[m_button_matrix_out_idx][i+1])
-        {
-            l_debug_transient = true;
-        }
+        m_buttons_stability_count[m_button_matrix_out_idx]++;
     }
-    if(l_debug_transient)
+    else
     {
-        printf("Buttons transient !\n");
+        m_buttons_stability_count[m_button_matrix_out_idx] = 0;
+    }
+    // Copy read buttons to raw buttons bit array for next read
+    m_buttons_raw &= ~(l_input_mask << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN));
+    m_buttons_raw |= l_buttons_inputs << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN);
+
+    // Check if these buttons are stable
+    if(m_buttons_stability_count[m_button_matrix_out_idx] == BUTTONS_STABILITY_THRESHOLD)
+    {
+        // Copy read buttons to raw buttons bit array
+        m_buttons &= ~(l_input_mask << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN));
+        m_buttons |= (l_buttons_inputs << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN));
+
+        #if DEBUG > 1
+        printf("Buttons stable : 0x%08x\n", m_buttons);
+        #endif
+    }
+    #if DEBUG > 1
+    else if(m_buttons_stability_count[m_button_matrix_out_idx] < BUTTONS_STABILITY_THRESHOLD)
+    {
+        printf("Buttons transient (%u) : 0x%08x\n", m_buttons_stability_count[m_button_matrix_out_idx], m_buttons_raw);
     }
     #endif
-
-    // Check if these buttons have changed
-    if(m_buttons_row_past[m_button_matrix_out_idx][0] != m_buttons_row_past[m_button_matrix_out_idx][NB_STABLE_BUTTON_STATES])
-    {
-        // Check if value is stable
-        bool l_is_stable = true;
-        for(unsigned int i = 0; i < NB_STABLE_BUTTON_STATES-1; ++i)
-        {
-            if(m_buttons_row_past[m_button_matrix_out_idx][i] != m_buttons_row_past[m_button_matrix_out_idx][i+1])
-            {
-                l_is_stable = false;
-            }
-        }
-        // If value is stable, validate it by copying to m_buttons
-        if(l_is_stable)
-        {
-            // Reset relevant bits
-            m_buttons &= ~(((1<<NB_PIN_BUTTON_MATRIX_IN) - 1) << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN));
-            // Copy bits
-            m_buttons |= m_buttons_row_past[m_button_matrix_out_idx][0] << (m_button_matrix_out_idx * NB_PIN_BUTTON_MATRIX_IN);
-            #if DEBUG > 1
-            printf("Buttons stable : 0x%08x\n", m_buttons);
-            #endif
-        }
-    }
 
     // Disconnect gpio from matrix in order to read next row of button matrix
     gpio_put_high_z(PIN_BUTTON_MATRIX_OUT[m_button_matrix_out_idx]);
@@ -153,6 +123,7 @@ bool Controls::read_buttons()
     // Return true if at least one button has changed
     return m_buttons != m_buttons_old;
 }
+
 
 void Controls::process_buttons()
 {
@@ -237,6 +208,7 @@ void Controls::process_buttons()
 
 }
 
+
 void Controls::write_leds() const
 {
     // Put each LED GPIO in its corresponding internal state
@@ -246,6 +218,7 @@ void Controls::write_leds() const
     }
 }
 
+
 void initialize_controls()
 {
     // Setup the outputs for the button matrix
@@ -254,8 +227,8 @@ void initialize_controls()
         gpio_init(PIN_BUTTON_MATRIX_OUT[i]);
         // gpios are not put to GPIO_OUT since high-z state puts them as inputs
         gpio_put_high_z(PIN_BUTTON_MATRIX_OUT[i]);
-        // These pins must not have any pull in order to be in high-z state
-        gpio_disable_pulls(PIN_BUTTON_MATRIX_OUT[i]);
+        // For some reason the buttons matrix rows interfer with the next row if not pulled 
+        gpio_pull_down(PIN_BUTTON_MATRIX_OUT[i]);
     }
 
     // Setup the pulled-down inputs for the button matrix
