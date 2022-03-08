@@ -63,6 +63,7 @@ Controls::Controls()
 bool Controls::read_buttons()
 {
     // This read operation could be handled by the PIO in order not to update the pin 1 time out of NB_PIN_BUTTON_MATRIX_OUT
+    // Using charlieplexing could also provide a lot more buttons if needed (N^2-N instead of (N/2)^2)
 
     // Old buttons state are now current state
     m_buttons_old = m_buttons;
