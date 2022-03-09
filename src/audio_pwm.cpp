@@ -38,7 +38,7 @@ void initialize_pwm_audio()
 
     // Setup PWM for audio output, see global.h for explanation
     pwm_config config = pwm_get_default_config();
-    pwm_config_set_clkdiv(&config, PWM_AUDIO_CLK_DIVIDER); 
+    pwm_config_set_clkdiv_int(&config, PWM_AUDIO_CLK_DIVIDER); 
     pwm_config_set_wrap(&config, (1<<PWM_AUDIO_BIT_DEPTH_PER_CHANNEL)-1);
     pwm_init(SLICE_PWM_AUDIO_OUTPUT, &config, false);
 

@@ -158,7 +158,7 @@ inline MidiByte midi_get_note(int octave, unsigned int note)
 }
 
 /**
- * @brief Creates a Note On Midi Event with the specified parameters.
+ * @brief Creates a Note On/Off Midi Event with the specified parameters.
  * 
  * @param event_type The type of midi event : Note On, Note Off.
  * @param channel The channel on which to send the event between 0 and 15.

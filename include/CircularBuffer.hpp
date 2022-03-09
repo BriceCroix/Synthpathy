@@ -151,7 +151,7 @@ public:
     {
         while(m_count != size)
         {
-            push(val);
+            push_fast(val);
         }
     }
 
