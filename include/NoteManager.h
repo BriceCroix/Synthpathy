@@ -42,7 +42,7 @@ protected:
      * @brief The maximum number of notes that can be active at the same time.
      * 
      */
-    static constexpr unsigned int NB_ACTIVE_NOTES = 8;
+    static constexpr unsigned int NB_ACTIVE_NOTES = 4;
 
     // Private members -----------------------------------------------------------------------------
 

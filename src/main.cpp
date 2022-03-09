@@ -22,6 +22,11 @@
 #include <stdio.h>
 #endif
 
+#ifdef TESTS_ONLY
+#pragma message "Compiling with TESTS_ONLY enabled"
+#include "tests.h"
+#endif
+
 #include "global.h"
 #include "audio_pwm.h"
 #include "Controls.h"
@@ -31,11 +36,15 @@ int main() {
     // Start by overclocking the controler
     set_sys_clock_khz(SYSTEM_CLOCK_FREQUENCY_KHZ, true);
 
-#ifdef DEBUG
+    #ifdef TESTS_ONLY
+    perform_tests();
+    #endif
+
+    #if (defined(DEBUG) || defined(DEBUG_AUDIO))
     // Initialize standard output
     stdio_init_all();
-    printf("========== Synthpathy started with DEBUG enabled ==========\n");
-#endif
+    printf("========== Synthpathy started ==========\n");
+    #endif
 
     // Initialize origin of time
     g_time_fs = SIZE_AUDIO_BUFFER;

@@ -42,13 +42,25 @@ target_link_libraries(Synthpathy
 )
 
 if(DEBUG)
+    message(STATUS "Defined DEBUG macro")
     # Enable usb standard output if DEBUG is specified
     pico_enable_stdio_usb(Synthpathy 1)
     # #define DEBUG for compiler
     add_compile_definitions(DEBUG=${DEBUG})
-else()
+endif()
+if(TESTS_ONLY)
+    message(STATUS "Defined TESTS_ONLY macro")
+    # Enable usb standard output if TESTS_ONLY is specified
+    pico_enable_stdio_usb(Synthpathy 1)
+    # #define TESTS_ONLY for compiler
+    add_compile_definitions(TESTS_ONLY=${TESTS_ONLY})
+endif()
+if(NOT(DEBUG OR DEBUG_AUDIO OR TESTS_ONLY))
+    message(STATUS "Disabled stdio usb")
+    # Disable usb standard output if no debug is specified
     pico_enable_stdio_usb(Synthpathy 0)
 endif()
+
 # Always disable uart standard output 
 pico_enable_stdio_uart(Synthpathy 0)
 
