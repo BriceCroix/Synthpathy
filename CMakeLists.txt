@@ -48,6 +48,13 @@ if(DEBUG)
     # #define DEBUG for compiler
     add_compile_definitions(DEBUG=${DEBUG})
 endif()
+if(DEBUG_AUDIO)
+    message(STATUS "Defined DEBUG_AUDIO macro")
+    # Enable usb standard output if DEBUG_AUDIO is specified
+    pico_enable_stdio_usb(Synthpathy 1)
+    # #define DEBUG_AUDIO for compiler
+    add_compile_definitions(DEBUG_AUDIO=${DEBUG_AUDIO})
+endif()
 if(TESTS_ONLY)
     message(STATUS "Defined TESTS_ONLY macro")
     # Enable usb standard output if TESTS_ONLY is specified

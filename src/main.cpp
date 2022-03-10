@@ -18,7 +18,14 @@
 
 #include "pico/stdlib.h"
 #include "hardware/sync.h"
-#ifdef DEBUG
+
+#if (defined(DEBUG) || defined(DEBUG_AUDIO))
+#if defined(DEBUG)
+#pragma message "Compiling with DEBUG enabled"
+#endif
+#if defined(DEBUG_AUDIO)
+#pragma message "Compiling with DEBUG_AUDIO enabled"
+#endif
 #include <stdio.h>
 #endif
 
@@ -59,6 +66,10 @@ int main() {
     initialize_controls();
     //TODO : initialize_adc()
     //TODO : initialize_uart()
+
+    #if (defined(DEBUG) || defined(DEBUG_AUDIO))
+    gpio_put(PIN_LED_ONBOARD, true);
+    #endif
     
     // Retrieve the controls instance
     Controls& controls = Controls::get_instance();
@@ -90,11 +101,14 @@ int main() {
 
             // Effects can be added on the audio sample here
 
-            #ifdef DEBUG
-            if(g_output_audio_buffer.get_count() == 0)
+            #ifdef DEBUG_AUDIO
+            printf("%f\n", l_audio_sample);
+            #endif
+
+            #if (defined(DEBUG) || defined(DEBUG_AUDIO))
+            if(g_output_audio_buffer.is_empty())
             {
                 printf("\n/!\\/!\\/!\\ Could not compute samples fast enough. Reset needed /!\\/!\\/!\\\n");
-                return 1;
             }
             #endif
 
