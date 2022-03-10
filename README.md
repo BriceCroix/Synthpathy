@@ -30,6 +30,34 @@ cmake -DPICO_SDK_PATH=/your/sdk/path ..
 make
 ```
 
+If you have a standard Ubuntu distribution (this is probably also true for other distributions), the pico should mount under `/media/user/RPI-RP2` (replace `user` by your actual login).
+So if you press the bootsel button, plug the pico, and release the button, you can load the executable with :
+
+```shell
+cp Synthpathy.uf2 /media/user/RPI-RP2/
+```
+
+## Development notes
+
+### Visualize generated sound
+
+If you have minicom and python 3 installed on your computer, you can visualize the waveform created by the software with the following process :
+
+```shell
+mkdir build
+cd build
+cmake -DPICO_SDK_PATH=/your/sdk/path -DDEBUG_AUDIO=1 ..
+make
+cp Synthpathy.uf2 /media/user/RPI-RP2/
+minicom -b 115200 -o -D /dev/ttyACM0 -C capture.txt
+
+python3 ../python_scripts/audio_plotter.py capture.txt
+```
+
+After starting minicom, you will see the raw samples created by Synthpathy. You are supposed to use it in order to see anything else than zeros.
+You can leave minicom with Ctrl+A, X. These samples are saved in `capture.txt`, which can be interpreted as a csv.
+The csv is then processed by `audio_plotter.py` in order to display the audio waveform in a much more pleasing way.
+
 
 ## Credits
 
