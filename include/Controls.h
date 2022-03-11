@@ -66,10 +66,22 @@ protected:
     /**@}*/
 
     /**
+     * @brief The minimum duration between two read_buttons execution in seconds.
+     * 
+     */
+    static constexpr float BUTTONS_READ_TIME_INTERVAL_S = 0.0004;
+
+    /**
+     * @brief The minimum duration between two read_buttons execution in number of samples.
+     * 
+     */
+    static constexpr unsigned int BUTTONS_READ_TIME_INTERVAL = BUTTONS_READ_TIME_INTERVAL_S * AUDIO_SAMPLING_FREQUENCY;
+
+    /**
      * @brief The number of times a button must be seen with the same value to be considered stable.
      * 
      */
-    static constexpr unsigned int BUTTONS_STABILITY_THRESHOLD = 4;
+    static constexpr unsigned int BUTTONS_STABILITY_THRESHOLD = 3;
 
     /**
      * @brief The indices of each LED signification.
@@ -127,6 +139,12 @@ protected:
      * 
      */
     unsigned int m_button_matrix_out_idx = 0;
+
+    /**
+     * @brief The last time at which the read method was called and executed.
+     * 
+     */
+    unsigned int m_button_time_fs_last_read = 0;
 
     /**
      * @brief The status of each LED, with one bit per LED.
@@ -226,11 +244,12 @@ public:
 
     /**
      * @brief Reads the buttons and update its internal values accordingly.
-     * 
+     * One call of this method only reads one row of the button matrix.
+     * @param time_fs The time in number of periods of sampling frequency.
      * @return true if at least one button has changed its status.
      * @return false if there is no button status change.
      */
-    bool read_buttons();
+    bool read_buttons(unsigned int time_fs);
 
     /**
      * @brief Process the buttons status change.

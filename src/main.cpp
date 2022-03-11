@@ -86,7 +86,7 @@ int main() {
     while(1)
     {
         // Check and process new inputs
-        if(controls.read_buttons())
+        if(controls.read_buttons(g_time_fs))
         {
             controls.process_buttons();
         }

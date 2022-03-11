@@ -60,10 +60,18 @@ Controls::Controls()
 }
 
 
-bool Controls::read_buttons()
+bool Controls::read_buttons(unsigned int time_fs)
 {
     // This read operation could be handled by the PIO in order not to update the pin 1 time out of NB_PIN_BUTTON_MATRIX_OUT
     // Using charlieplexing could also provide a lot more buttons if needed (N^2-N instead of (N/2)^2)
+
+    // Do not do anything if called too early. This is done because two consecutive calls can interfer.
+    if(time_fs < m_button_time_fs_last_read + BUTTONS_READ_TIME_INTERVAL)
+    {
+        return false;
+    }
+    // Update last time read was actually done
+    m_button_time_fs_last_read = time_fs;
 
     // Old buttons state are now current state
     m_buttons_old = m_buttons;

@@ -49,7 +49,7 @@ void perform_tests()
         for(unsigned int i = 0; i < NB_TESTS; ++i)
         {
             t_us = time_us_32();
-            controls.read_buttons();
+            controls.read_buttons(10*i);
             duration_us += time_us_32() - t_us;
         }
         duration_ns = duration_us * 1000 / NB_TESTS;
