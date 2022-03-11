@@ -22,10 +22,11 @@ if __name__ == '__main__':
     data = np.genfromtxt(filename, dtype=float, delimiter=";")
     time = np.arange(0, len(data)) / AUDIO_SAMPLING_FREQUENCY
 
+    # Check for errors in the input file, translated to nans
     errors = np.where(np.isnan(data))
     if(np.size(errors) != 0):
-        print("Input file contains errors at indices :")
-        print(errors)
+        print("Input file contains errors at lines " + str(errors[0]+1))
+
 
     # Perform frequency analysis
     data_fft = np.fft.fft(data) / len(data)

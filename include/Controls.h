@@ -75,7 +75,7 @@ protected:
      * @brief The minimum duration between two read_buttons execution in number of samples.
      * 
      */
-    static constexpr unsigned int BUTTONS_READ_TIME_INTERVAL = BUTTONS_READ_TIME_INTERVAL_S * AUDIO_SAMPLING_FREQUENCY;
+    static constexpr unsigned int BUTTONS_READ_TIME_INTERVAL_FS = BUTTONS_READ_TIME_INTERVAL_S * AUDIO_SAMPLING_FREQUENCY;
 
     /**
      * @brief The number of times a button must be seen with the same value to be considered stable.
@@ -93,6 +93,15 @@ protected:
     /**@}*/
 
     /**
+     * @brief The function of each ADC channel, of each potentiometer.
+     * @{
+     */
+    static constexpr unsigned int POTENTIOMETER_ATTACK_IDX = 0;
+    static constexpr unsigned int POTENTIOMETER_SUSTAIN_IDX = 1;
+    static constexpr unsigned int POTENTIOMETER_RESERVED_IDX = 2;
+    /**@}*/
+
+    /**
      * @brief The default channel on which to create midi events.
      * 
      */
@@ -104,6 +113,90 @@ protected:
      */
     static constexpr MidiByte MIDI_DEFAULT_VELOCITY = 0x7F;
 
+    /**
+     * @brief The minimum attack duration in seconds.
+     * 
+     */
+    static constexpr float ATTACK_MIN_S = 0.f;
+
+    /**
+     * @brief The minimum attack duration in number of samples.
+     * 
+     */
+    static constexpr unsigned ATTACK_MIN_FS = ATTACK_MIN_S * AUDIO_SAMPLING_FREQUENCY;
+
+    /**
+     * @brief The maximum attack duration in seconds.
+     * 
+     */
+    static constexpr float ATTACK_MAX_S = 5.f;
+
+    /**
+     * @brief The maximum attack duration in number of samples.
+     * 
+     */
+    static constexpr unsigned ATTACK_MAX_FS = ATTACK_MAX_S * AUDIO_SAMPLING_FREQUENCY;
+
+    /**
+     * @brief The minimum decay duration in seconds.
+     * 
+     */
+    static constexpr float DECAY_MIN_S = 0.f;
+
+    /**
+     * @brief The minimum decay duration in number of samples.
+     * 
+     */
+    static constexpr unsigned DECAY_MIN_FS = DECAY_MIN_S * AUDIO_SAMPLING_FREQUENCY;
+
+    /**
+     * @brief The maximum decay duration in seconds.
+     * 
+     */
+    static constexpr float DECAY_MAX_S = 5.f;
+
+    /**
+     * @brief The maximum decay duration in number of samples.
+     * 
+     */
+    static constexpr unsigned DECAY_MAX_FS = DECAY_MAX_S * AUDIO_SAMPLING_FREQUENCY;
+
+    /**
+     * @brief The minimum sustain value.
+     * 
+     */
+    static constexpr float SUSTAIN_MIN = 0.f;
+
+    /**
+     * @brief The maximum sustain value.
+     * 
+     */
+    static constexpr float SUSTAIN_MAX = 1.f;
+
+    /**
+     * @brief The minimum release duration in seconds.
+     * 
+     */
+    static constexpr float RELEASE_MIN_S = 1e-3f;
+
+    /**
+     * @brief The minimum release duration in number of samples.
+     * 
+     */
+    static constexpr unsigned RELEASE_MIN_FS = RELEASE_MIN_S * AUDIO_SAMPLING_FREQUENCY;
+
+    /**
+     * @brief The maximum release duration in seconds.
+     * 
+     */
+    static constexpr float RELEASE_MAX_S = 5.f;
+
+    /**
+     * @brief The maximum release duration in number of samples.
+     * 
+     */
+    static constexpr unsigned RELEASE_MAX_FS = RELEASE_MAX_S * AUDIO_SAMPLING_FREQUENCY;
+    
 
     // Private members ---------------------------------------------------------
 
@@ -256,13 +349,27 @@ public:
      * 
      */
     void process_buttons();
+
+    /**
+     * @brief Called by the ADC after a conversion is complete.
+     * Can also be used to set the potentiometers values in software.
+     * @param potentiometer_idx The index of the potentiometer.
+     * @param value The value of the ADC.
+     */
+    void set_potentiometer(unsigned int potentiometer_idx, uint8_t value);
 };
 
 /**
  * @brief Initializes the GPIO used by the Controls instance.
- * 
+ * Also initializes the Analog to Digital Converter.
  */
 void initialize_controls();
+
+/**
+ * @brief The handler function for the ADC end of conversion interrupt.
+ * 
+ */
+void adc_irq_handler();
 
 /**
  * @brief Puts a gpio output to high impedance.

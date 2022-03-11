@@ -39,6 +39,7 @@ add_compile_options(-Wall -Wextra -Wpedantic -Werror)
 target_link_libraries(Synthpathy
     pico_stdlib
     hardware_pwm
+    hardware_adc
 )
 
 if(DEBUG)

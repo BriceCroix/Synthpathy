@@ -21,6 +21,10 @@
 #include "midi.h"
 
 #include "pico/stdlib.h"
+#include "hardware/adc.h"
+#include "hardware/irq.h"
+
+#include <limits>
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -66,7 +70,7 @@ bool Controls::read_buttons(unsigned int time_fs)
     // Using charlieplexing could also provide a lot more buttons if needed (N^2-N instead of (N/2)^2)
 
     // Do not do anything if called too early. This is done because two consecutive calls can interfer.
-    if(time_fs < m_button_time_fs_last_read + BUTTONS_READ_TIME_INTERVAL)
+    if(time_fs < m_button_time_fs_last_read + BUTTONS_READ_TIME_INTERVAL_FS)
     {
         return false;
     }
@@ -233,6 +237,37 @@ void Controls::write_leds() const
 }
 
 
+void Controls::set_potentiometer(unsigned int potentiometer_idx, uint8_t value)
+{
+    #if DEBUG == 3
+    printf("ADC %u : %u\n", potentiometer_idx, value);
+    #endif
+
+    // Handle each potentiometer value differently
+    switch (potentiometer_idx)
+    {
+    case POTENTIOMETER_ATTACK_IDX:
+        // TODO Attack should probably not be linear
+        m_attack_fs = ATTACK_MIN_FS + (static_cast<float>(ATTACK_MAX_FS-ATTACK_MIN_FS) * static_cast<float>(value) / std::numeric_limits<uint8_t>::max());
+        // While only two pots can be used for ADSR, release is also controlled by attack potentiometer
+        m_release_fs = RELEASE_MIN_FS + (static_cast<float>(RELEASE_MAX_FS-RELEASE_MIN_FS) * static_cast<float>(value) / std::numeric_limits<uint8_t>::max());
+        break;
+
+    case POTENTIOMETER_SUSTAIN_IDX:
+        // Sustain is linear between min and max
+        m_sustain = SUSTAIN_MIN + ((SUSTAIN_MAX-SUSTAIN_MIN) * static_cast<float>(value) / std::numeric_limits<uint8_t>::max());
+        break;
+
+    case POTENTIOMETER_RESERVED_IDX:
+        // Nothing to do here while this potentiometer is not used
+    
+    default:
+        // Unhandled case, should not occur
+        break;
+    }
+}
+
+
 void initialize_controls()
 {
     // Setup the outputs for the button matrix
@@ -267,4 +302,53 @@ void initialize_controls()
 
     // Get the Controls instance in order to initialize it
     Controls::get_instance();
+
+    // Initialize ADC
+    adc_init();
+    for(unsigned int i = 0; i < NB_PIN_POTENTIOMETERS; ++i)
+    {
+        adc_gpio_init(PIN_POTENTIOMETERS[i]);
+    }
+    adc_select_input(0);
+    // Set adc conversion speed
+    adc_set_clkdiv((static_cast<float>(ADC_BASE_CLOCK_HZ) / POTENTIOMETERS_REFRESH_RATE_HZ) - 1.f);
+    // Set ADC to reed all inputs alternatively (mask with NB_PIN_POTENTIOMETERS ones)
+    adc_set_round_robin((1<<NB_PIN_POTENTIOMETERS)-1);
+    // Disable temperature sensor
+    adc_set_temp_sensor_enabled(false);
+    // Enable ADC interrupts
+    irq_clear(ADC_IRQ_FIFO);
+    adc_irq_set_enabled(true);
+    irq_set_exclusive_handler(ADC_IRQ_FIFO, adc_irq_handler);
+    // Setup ADC to write its results in fifo :
+    // - Disable DMA request
+    // - Interrupt is raised with 1 sample in the fifo
+    // - Disable error bit,
+    // - Enable byte shift so that result is on one byte only
+    adc_fifo_setup(true, false, 1, false, true);
+    // Authorize ADC FIFO to raise interrupts
+    irq_set_enabled(ADC_IRQ_FIFO, true);
+
+    // Start ADC in free-running mode
+    adc_run(true);
+}
+
+
+void adc_irq_handler()
+{
+    // A static variable remembering which adc channel is used
+    // adc_get_selected_input() cannot be used since next conversion has already started
+    static unsigned int sl_adc_channel = 0;
+
+    // Should not block since function is triggered by ADC itself
+    const uint8_t l_adc_value = adc_fifo_get_blocking();
+
+    // Send to Controls instance
+    Controls::get_instance().set_potentiometer(sl_adc_channel, l_adc_value);
+
+    // A new conversion has started on the next channel
+    if(++sl_adc_channel == NB_PIN_POTENTIOMETERS)
+    {
+        sl_adc_channel = 0;
+    }
 }

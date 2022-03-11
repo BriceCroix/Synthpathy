@@ -68,12 +68,13 @@ void NoteManager::update_active_notes(unsigned int time_fs)
                         #endif
 
                         const float velocity = static_cast<float>(l_midi_data2) / 0x7F;
-                        // Add the new note to the pool
+                        // Add the new note to the pool, perhaps sustain should also be fixed to avoid jitter
                         m_active_notes_pool[i] = ActiveNote(l_midi_data1, velocity, time_fs, controls.get_attack_fs(), controls.get_decay_fs());
                         break;
                     }    
                 }
                 while ((++i) < NB_ACTIVE_NOTES);
+                // TODO : if pool is full, search for released notes, replace the one released the longest ago
                 break;
 
             // A formerly created note must be released
@@ -126,8 +127,11 @@ float NoteManager::get_audio(unsigned int time_fs)
     // Prevent audio signal from exceeding amplitude 1
     l_audio_value /= NB_ACTIVE_NOTES;
 
-    #ifdef DEBUG_AUDIO
-    printf("%.3f\n", l_audio_value);
+    #if (DEBUG_AUDIO == 2)
+    printf("%.2f\n", l_audio_value);
+    #endif
+    #if (DEBUG_AUDIO == 1)
+    printf("%.f\n", l_audio_value);
     #endif
 
     return l_audio_value;

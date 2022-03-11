@@ -67,6 +67,7 @@ int main() {
     //TODO : initialize_uart()
 
     #if (defined(DEBUG) || defined(DEBUG_AUDIO))
+    gpio_set_dir(PIN_LED_ONBOARD, GPIO_OUT);
     gpio_put(PIN_LED_ONBOARD, true);
     #endif
     

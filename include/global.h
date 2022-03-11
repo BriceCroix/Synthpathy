@@ -75,6 +75,25 @@ constexpr unsigned int SIZE_AUDIO_BUFFER_MS = 8;
  */
 constexpr unsigned int SIZE_AUDIO_BUFFER = AUDIO_SAMPLING_FREQUENCY * SIZE_AUDIO_BUFFER_MS / 1000;
 
+/**
+ * @brief The ADC base clock in Hertz according to pico documentation.
+ * A complete conversion takes 96 cycles, so at maximum speed,
+ * sampling rate is 48MHz / 96 = 500kHz.
+ */
+constexpr unsigned int ADC_BASE_CLOCK_HZ = 48e6;
+
+/**
+ * @brief The refresh rate of the Controls potentiometers in Hertz.
+ * Note that each potentiometer is refreshed at a time, and refresh rate for
+ * each potentiometer is then POTENTIOMETERS_REFRESH_RATE_HZ / NB_PIN_POTENTIOMETERS.
+ */
+constexpr unsigned int POTENTIOMETERS_REFRESH_RATE_HZ =
+#if (DEBUG == 3)
+    1;
+#else
+    5000;
+#endif
+
 
 // Global variables ------------------------------------------------------------
 
@@ -174,13 +193,13 @@ constexpr unsigned int PIN_LED_ONBOARD = 25;
  * @brief The number of GPIO pins used for the potentiometers.
  * 
  */
-constexpr unsigned int NB_PIN_POTENTIOMETER = 3;
+constexpr unsigned int NB_PIN_POTENTIOMETERS = 3;
 
 /**
  * @brief The GPIO pins used for the potentiometers.
  * These pins are connected to ADC0, ADC1 and ADC2.
  */
-constexpr unsigned int PIN_POTENTIOMETERS[NB_PIN_POTENTIOMETER] = {26,27,28};
+constexpr unsigned int PIN_POTENTIOMETERS[NB_PIN_POTENTIOMETERS] = {26,27,28};
 
 
 #endif //SYNTHPATHY_GLOBAL_H_
