@@ -40,12 +40,6 @@ constexpr unsigned int SYSTEM_CLOCK_FREQUENCY_KHZ = 192000U;
 constexpr unsigned int SIZE_MIDI_BUFFER = 4;
 
 /**
- * @brief The number of samples that are to be computed in advance.
- * 
- */
-constexpr unsigned int SIZE_AUDIO_BUFFER = 128;
-
-/**
  * @brief The number of bits used by one channel the pwm audio output slice.
  * 
  */
@@ -57,7 +51,7 @@ constexpr unsigned int PWM_AUDIO_BIT_DEPTH_PER_CHANNEL = 8;
  */
 constexpr unsigned int PWM_AUDIO_CLK_DIVIDER =
 #ifdef DEBUG_AUDIO
-    64;
+    128;
 #else
     16;
 #endif
@@ -69,12 +63,24 @@ constexpr unsigned int PWM_AUDIO_CLK_DIVIDER =
 constexpr unsigned int AUDIO_SAMPLING_FREQUENCY = (SYSTEM_CLOCK_FREQUENCY_KHZ*1000)
     / (PWM_AUDIO_CLK_DIVIDER * (1<<PWM_AUDIO_BIT_DEPTH_PER_CHANNEL));
 
+/**
+ * @brief The size of the audio buffer in milliseconds.
+ * 10 ms is the just noticeable delay for most humans.
+ */
+constexpr unsigned int SIZE_AUDIO_BUFFER_MS = 8;
+
+/**
+ * @brief The size of the audio buffer in number of samples.
+ * 10 ms is the just noticeable delay for most humans.
+ */
+constexpr unsigned int SIZE_AUDIO_BUFFER = AUDIO_SAMPLING_FREQUENCY * SIZE_AUDIO_BUFFER_MS / 1000;
+
 
 // Global variables ------------------------------------------------------------
 
 /**
  * @brief The time in number of periods of the audio sampling frequency.
- * This variable is very important since all sample-based computation rely on it.
+ * 
  */
 extern volatile unsigned int g_time_fs;
 

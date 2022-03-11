@@ -53,11 +53,10 @@ int main() {
     printf("========== Synthpathy started ==========\n");
     #endif
 
-    // Initialize origin of time
-    g_time_fs = SIZE_AUDIO_BUFFER;
-    // Initialize audio level with samples ready to be popped
+    // Initialize origin of time 
+    g_time_fs = 0;
+    // Initialize audio buffer
     g_output_audio_buffer.empty();
-    g_output_audio_buffer.fill(0.f);
     // Initialize midi buffer
     g_midi_internal_buffer.empty();
 
@@ -79,6 +78,14 @@ int main() {
     // A local value of time, that can be a little late on the global one
     unsigned int l_time_fs = 0;
 
+    // Pre-compute buffer full of 0's, update time accordingly
+    while(!g_output_audio_buffer.is_full())
+    {
+        g_output_audio_buffer.push(0.f);
+        l_time_fs++;
+    }
+    g_time_fs = l_time_fs;
+
     // Start the audio output
     start_pwm_audio();
 
@@ -91,31 +98,28 @@ int main() {
             controls.process_buttons();
         }
         // Create, release and update notes
-        active_note_manager.update_active_notes(g_time_fs);
+        active_note_manager.update_active_notes(l_time_fs);
 
         // Compute next samples
-        while(l_time_fs != g_time_fs)
+        while(!g_output_audio_buffer.is_full())
         {
             // Compute audio sample
             const float l_audio_sample = active_note_manager.get_audio(l_time_fs);
 
             // Effects can be added on the audio sample here
 
-            #ifdef DEBUG_AUDIO
-            printf("%f\n", l_audio_sample);
-            #endif
-
-            #if (defined(DEBUG) || defined(DEBUG_AUDIO))
+            #if defined(DEBUG)
             if(g_output_audio_buffer.is_empty())
             {
                 printf("\n/!\\/!\\/!\\ Could not compute samples fast enough. Reset needed /!\\/!\\/!\\\n");
             }
             #endif
 
-            // Push audio sample in buffer
-            g_output_audio_buffer.push(l_audio_sample);
+            // Push audio sample in buffer, without verification since it is not full
+            // TODO : protect this push from interrupt
+            g_output_audio_buffer.push_fast(l_audio_sample);
 
-            // Increment time
+            // Increment local time
             l_time_fs++;
         }
     }
