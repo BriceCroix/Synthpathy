@@ -4,7 +4,7 @@ import numpy as np
 
 # These values are copied from "global.h"
 SYSTEM_CLOCK_FREQUENCY_KHZ = 192000
-PWM_AUDIO_CLK_DIVIDER = 64
+PWM_AUDIO_CLK_DIVIDER = 128
 PWM_AUDIO_BIT_DEPTH_PER_CHANNEL = 8
 AUDIO_SAMPLING_FREQUENCY = (SYSTEM_CLOCK_FREQUENCY_KHZ*1000.0) / (PWM_AUDIO_CLK_DIVIDER * (1<<PWM_AUDIO_BIT_DEPTH_PER_CHANNEL))
 
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     filename = sys.argv[1]
     
     # Retrieve audio signal
-    data = np.genfromtxt(filename, dtype=float)#[:, 1]
+    data = np.genfromtxt(filename, dtype=float, delimiter=";")
 
     # Plot signal
     fig, ax = plt.subplots(1,1)

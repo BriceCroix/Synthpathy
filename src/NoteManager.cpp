@@ -20,7 +20,7 @@
 
 #include "Controls.h"
 
-#ifdef DEBUG
+#if (defined(DEBUG) || defined(DEBUG_AUDIO))
 #include <stdio.h>
 #endif
 
@@ -117,7 +117,18 @@ float NoteManager::get_audio(unsigned int time_fs)
     // TODO : multiprocessing
     for(unsigned int i = 0; i < NB_ACTIVE_NOTES; ++i)
     {
-        l_audio_value += m_active_notes_pool[i].get_audio_value(time_fs, controls.get_selected_waveform(), controls.get_sustain());
+        const float l_audio_value_single = m_active_notes_pool[i].get_audio_value(time_fs, controls.get_selected_waveform(), controls.get_sustain());    
+        l_audio_value += l_audio_value_single;
+        #if (DEBUG_AUDIO == 2)
+        printf("%.2f;", l_audio_value_single);
+        #endif
     }
+
+    #ifdef DEBUG_AUDIO
+    printf("%.3f\n", l_audio_value);
+    #endif
+
+    l_audio_value /= NB_ACTIVE_NOTES;
+
     return l_audio_value;
 }

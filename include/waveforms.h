@@ -32,17 +32,17 @@ enum TypeWaveform
  * 
  * @param time The time in seconds.
  * @param frequency The frequency in Hz.
- * @param duty_cycle The duty cycle in percents.
- * @return audio_int 
+ * @param duty_cycle The duty cycle between 0 and 1.
+ * @return float 
  */
-float square_wave(float time, float frequency, float duty_cycle=50.0f);
+float square_wave(float time, float frequency, float duty_cycle=0.5f);
 
 /**
  * @brief Value of a rising wave of given parameters.
  * 
  * @param time The time in seconds.
  * @param frequency The frequency in Hz.
- * @return audio_int 
+ * @return float 
  */
 float saw_wave(float time, float frequency);
 

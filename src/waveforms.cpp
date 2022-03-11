@@ -18,16 +18,16 @@
 
 #include "waveforms.h"
 
-#include <math.h>
+#include "pico/float.h"
 
 float square_wave(float time, float frequency, float duty_cycle)
 {
-    float period = 1.f / frequency;
-    return (std::fmod(time, period) < (period*duty_cycle)) ? 1.0f : -1.0f;
+    const float period = 1.f / frequency;
+    return (fmod(time, period) < (period * duty_cycle)) ? 1.0f : -1.0f;
 }
 
 float saw_wave(float time, float frequency)
 {
-    float period = 1.f / frequency;
-    return (2 * std::fmod(time, period) / period) - 1;
+    const float period = 1.f / frequency;
+    return (2 * fmod(time, period) / period) - 1.f;
 }
