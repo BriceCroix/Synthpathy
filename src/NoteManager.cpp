@@ -113,7 +113,6 @@ float NoteManager::get_audio(unsigned int time_fs)
 {
     Controls& controls = Controls::get_instance();
     float l_audio_value = 0;
-    // TODO : make sure does not go out of -1,1
     // TODO : multiprocessing
     for(unsigned int i = 0; i < NB_ACTIVE_NOTES; ++i)
     {
@@ -124,11 +123,12 @@ float NoteManager::get_audio(unsigned int time_fs)
         #endif
     }
 
+    // Prevent audio signal from exceeding amplitude 1
+    l_audio_value /= NB_ACTIVE_NOTES;
+
     #ifdef DEBUG_AUDIO
     printf("%.3f\n", l_audio_value);
     #endif
-
-    l_audio_value /= NB_ACTIVE_NOTES;
 
     return l_audio_value;
 }

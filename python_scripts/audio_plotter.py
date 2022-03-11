@@ -20,20 +20,35 @@ if __name__ == '__main__':
     
     # Retrieve audio signal
     data = np.genfromtxt(filename, dtype=float, delimiter=";")
+    time = np.arange(0, len(data)) / AUDIO_SAMPLING_FREQUENCY
+
+    errors = np.where(np.isnan(data))
+    if(np.size(errors) != 0):
+        print("Input file contains errors at indices :")
+        print(errors)
+
+    # Perform frequency analysis
+    data_fft = np.fft.fft(data) / len(data)
+    freq = np.fft.fftfreq(len(data), d=1./AUDIO_SAMPLING_FREQUENCY)
 
     # Plot signal
-    fig, ax = plt.subplots(1,1)
-    time = np.arange(0, len(data)) / AUDIO_SAMPLING_FREQUENCY
-    ax.plot(time, data)
+    fig, (ax, ax2) = plt.subplots(2,1)
 
-    # Add figure information
+    # Time
+    ax.plot(time, data)
     ax.grid()
     ax.set_xlabel("Time (s)")
     ax.set_ylabel("Audio signal")
     ax.set_title("Measured audio signal")
 
-    # TODO : add frequency plot
+    # Frequency
+    ax2.plot(freq, np.abs(data_fft))
+    ax2.grid()
+    ax2.set_xlabel("Frequency (Hz)")
+    ax2.set_title("Measured audio signal FFT")
 
+
+    fig.tight_layout()
     # Save figure
     fig.savefig(filename + ".png")
     # Show figure

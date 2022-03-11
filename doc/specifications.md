@@ -25,10 +25,10 @@ The status is one of the following :
 |  1.1a   |12 buttons for a full octave                                         |Done
 |  1.1b   |2 buttons for octave up/down                                         |Done
 |  1.1c   |1 button for waveform selection                                      |Done
-|1.2      |Ability to generate simple waveforms at specific frequencies         |Active
-|  1.2a   |Saw Wave                                                             |Active
-|  1.2b   |Square Wave                                                          |Active
-|1.3      |Ability to generate simple envelopes such as Attack-Sustain          |Active
+|1.2      |Ability to generate simple waveforms at specific frequencies         |Done
+|  1.2a   |Saw Wave                                                             |Done
+|  1.2b   |Square Wave                                                          |Done
+|1.3      |Ability to generate simple envelopes such as Attack-Sustain          |Done
 |1.9      |Ability to provide user visual indications with 3 LEDs               |Done    |Squarewave / Sawwave
 
 
@@ -57,4 +57,7 @@ The status is one of the following :
 | Feat ID | Description                                                         | Status | Comment |
 |:-------:|:--------------------------------------------------------------------|:------:|:--------|
 |2.0      |Ability to pilot an external device for additional analog inputs
-|2.1      |Ability to pilot lots of LEDs with SIPO registers (such as 74AHC594)
+|2.1      |Ability to pilot an external device for additional digital IO
+|  2.1a   |More LEDs with SIPO registers (such as 74AHC594 or 595)
+|  2.1b   |More buttons with PISO registers (such as M74HC165)
+|  2.1c   |More IO with I2C GPIO expander (such as MCP23017)
