@@ -55,3 +55,38 @@ void multiqore_initialize()
     queue_init(&multiqore_results_queue, sizeof(multiqore_results_t), SIZE_MULTIQORE_QUEUE);
     multicore_launch_core1(core1_task);
 }
+
+
+struct multiqore_printf_params
+{
+    const char* str;
+};
+
+void multiqore_printf_wrapper(void* params)
+{
+    // Copy given string
+    char str[MULTIQORE_PRINTF_BUFFER];
+    strcpy(str, ((struct multiqore_printf_params*)params)->str);
+    // Inform main core that copy is done by sending random data
+    multiqore_send_result((void*)str);
+    // Actually print
+    printf(str);
+}
+
+
+void multiqore_printf(const char* format, ...)
+{
+    // Recover list of arguments
+    va_list args;
+    va_start(args, format);
+    // Format string
+    char str[MULTIQORE_PRINTF_BUFFER];
+    vsprintf(str, format, args);
+    // Send task to other core
+    struct multiqore_printf_params params = {str};
+    multiqore_start_task(&multiqore_printf_wrapper, (void*)(&params));
+    // Wait for other core to take ownership of data
+    multiqore_get_result_uint32();
+    // Release list of arguments
+    va_end(args);
+}

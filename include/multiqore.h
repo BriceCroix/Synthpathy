@@ -170,7 +170,8 @@ inline float multiqore_get_result_float()
  *     float result = sum_of_inverses(0, N/2);
  *     // Add together the two halves of sum
  *     result += multiqore_get_result_float();
- *     // Do whatever you want with result
+ *     // Print result using other core resources
+ *     multiqore_printf("Result is %f\n", result);
  * }
  * 
  * @param task Function pointer to task to perform.
@@ -181,6 +182,13 @@ inline void multiqore_start_task(void(*task)(void*), void* params)
     struct multiqore_call_element e = {task, params};
     queue_try_add(&multiqore_call_queue, &e);
 }
+
+/**
+ * @brief printf on other core in order not to block main one.
+ * 
+ */
+void multiqore_printf(const char* format, ...);
+
 
 #ifdef __cplusplus
 }
