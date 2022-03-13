@@ -19,6 +19,7 @@
 #include "NoteManager.h"
 
 #include "Controls.h"
+#include "multiqore.h"
 
 #if (defined(DEBUG) || defined(DEBUG_AUDIO))
 #include <stdio.h>
@@ -109,30 +110,50 @@ void NoteManager::update_active_notes(unsigned int time_fs)
     }
 }
 
-
 float NoteManager::get_audio(unsigned int time_fs)
-{
-    Controls& controls = Controls::get_instance();
-    float l_audio_value = 0;
-    // TODO : multiprocessing
-    for(unsigned int i = 0; i < NB_ACTIVE_NOTES; ++i)
-    {
-        const float l_audio_value_single = m_active_notes_pool[i].get_audio_value(time_fs, controls.get_selected_waveform(), controls.get_sustain());    
-        l_audio_value += l_audio_value_single;
-        #if (DEBUG_AUDIO == 2)
-        printf("%.2f;", l_audio_value_single);
-        #endif
-    }
+{    
+    // Multiprocess this task
+
+    // Start computation of odd indices on core 1
+    struct note_manager_get_audio_thread_params params = {time_fs, 1};
+    multiqore_start_task(&note_manager_get_audio_thread_wrapper, &params);
+    gpio_put(PIN_LED_ONBOARD, false);
+    // Start computation of event indices on core 0
+    float l_audio_value = get_audio_thread(time_fs, 0);
+    // Add together the two halves of sum
+    l_audio_value += multiqore_get_result_float();
 
     // Prevent audio signal from exceeding amplitude 1
     l_audio_value /= NB_ACTIVE_NOTES;
 
-    #if (DEBUG_AUDIO == 2)
-    printf("%.2f\n", l_audio_value);
-    #endif
-    #if (DEBUG_AUDIO == 1)
-    printf("%.f\n", l_audio_value);
+    #ifdef DEBUG_AUDIO
+    printf("%f\n", l_audio_value);
     #endif
 
+
     return l_audio_value;
+}
+
+
+float NoteManager::get_audio_thread(unsigned int time_fs, unsigned int i_core)
+{
+    Controls& controls = Controls::get_instance();
+    float l_audio_value = 0;
+    // Add output of each single note
+    for(unsigned int i = i_core; i < NB_ACTIVE_NOTES; i += NB_CORES)
+    {
+        const float l_audio_value_single = m_active_notes_pool[i].get_audio_value(time_fs, controls.get_selected_waveform(), controls.get_sustain());    
+        l_audio_value += l_audio_value_single;
+    }
+    return l_audio_value;
+}
+
+
+void note_manager_get_audio_thread_wrapper(void* params)
+{
+    NoteManager& note_manager = NoteManager::get_instance();
+    const unsigned int time_fs = ((struct note_manager_get_audio_thread_params*)params)->time_fs;
+    const unsigned int i_core = ((struct note_manager_get_audio_thread_params*)params)->i_core;
+    const float result = note_manager.get_audio_thread(time_fs, i_core);
+    multiqore_send_result((void*)(&result)); 
 }

@@ -25,12 +25,14 @@
 #include "audio_pwm.h"
 #include "global.h"
 #include "NoteManager.h"
+#include "multiqore.h"
 
 void perform_tests()
 {
     stdio_init_all();
     g_midi_internal_buffer.empty();
 
+    multiqore_initialize();
     initialize_pwm_audio();
     initialize_controls();
     
@@ -154,7 +156,9 @@ void perform_tests()
 
         /*----------------------------------------------------------------------------------------*/
 
-        for(unsigned int i = 0; i < 4; i++)
+        constexpr unsigned int NB_ACTIVE_NOTES = 4;
+
+        for(unsigned int i = 0; i < NB_ACTIVE_NOTES; i++)
         {
             g_midi_internal_buffer.push(midi_event_note_onoff(MIDI_NOTE_ON, 0, 12*i, 0x7F));
             note_manager.update_active_notes(42+i);
@@ -171,7 +175,7 @@ void perform_tests()
         duration_ns = duration_us * 1000 / NB_TESTS;
         printf("note_manager.get_audio(...) [Full pool] : %u ns\n", duration_ns);
 
-        for(unsigned int i = 0; i < 4; i++)
+        for(unsigned int i = 0; i < NB_ACTIVE_NOTES; i++)
         {
             g_midi_internal_buffer.push(midi_event_note_onoff(MIDI_NOTE_OFF, 0, 12*i, 0x7F));
             note_manager.update_active_notes(0);

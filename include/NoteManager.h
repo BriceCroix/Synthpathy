@@ -36,6 +36,7 @@ protected:
     NoteManager(const NoteManager&) = delete; // Prevent construction by copying
     NoteManager& operator=(const NoteManager&) = delete; // Prevent assignment
 
+
     // Private constants
 
     /**
@@ -44,11 +45,25 @@ protected:
      */
     static constexpr unsigned int NB_ACTIVE_NOTES = 4;
 
+
     // Private members -----------------------------------------------------------------------------
 
     ActiveNote m_active_notes_pool[NB_ACTIVE_NOTES];
 
+
     // Private methods -----------------------------------------------------------------------------
+
+    /**
+     * @brief "Thread" used by get_audio.
+     * 
+     * @param time_fs 
+     * @param i_core 
+     * @return float 
+     */
+    float get_audio_thread(unsigned int time_fs, unsigned int i_core);
+
+    friend void note_manager_get_audio_thread_wrapper(void* params);
+
 
 public:
 
@@ -77,5 +92,26 @@ public:
      */
     float get_audio(unsigned int time_fs);
 };
+
+
+/**
+ * @brief Structure used by get_audio.
+ * This struct needs to be outside NoteManager class in order to compile,
+ * but it should never be used outside NoteManager::get_audio.
+ */
+struct note_manager_get_audio_thread_params
+{
+    unsigned int time_fs;
+    unsigned int i_core;
+};
+
+
+/**
+ * @brief Wrapper to the "thread" used by NoteManager::get_audio.
+ * This method needs to be outside NoteManager class in order to compile,
+ * but it should never be used outside NoteManager::get_audio.
+ * @param params 
+ */
+void note_manager_get_audio_thread_wrapper(void* params);
 
 #endif //SYNTHPATHY_NOTEMANAGER_H_

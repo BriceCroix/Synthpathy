@@ -10,6 +10,7 @@ project(Synthpathy
 
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_C_STANDARD 11)
 
 # initialize the Raspberry Pi Pico SDK
 pico_sdk_init()
@@ -40,6 +41,7 @@ target_link_libraries(Synthpathy
     pico_stdlib
     hardware_pwm
     hardware_adc
+    pico_multicore
 )
 
 if(DEBUG)

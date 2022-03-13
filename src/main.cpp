@@ -38,6 +38,7 @@
 #include "audio_pwm.h"
 #include "Controls.h"
 #include "NoteManager.h"
+#include "multiqore.h"
 
 int main() {
     // Start by overclocking the controler
@@ -61,6 +62,7 @@ int main() {
     g_midi_internal_buffer.empty();
 
     // Initialize everything
+    multiqore_initialize();
     initialize_pwm_audio();
     initialize_controls();
     //TODO : initialize_adc()
@@ -117,7 +119,7 @@ int main() {
             #endif
 
             // Push audio sample in buffer, without verification since it is not full
-            // TODO : protect this push from interrupt
+            // TODO : protect this push from interrupt (replace by pico/utils/queue)
             g_output_audio_buffer.push_fast(l_audio_sample);
 
             // Increment local time
