@@ -36,9 +36,9 @@ The status is one of the following :
 
 | Feat ID | Description                                                         | Status | Comment |
 |:-------:|:--------------------------------------------------------------------|:------:|:--------|
-|1.4      |Ability to control additional parameters on generated waveforms      |
-|  1.4a   |Square wave duty cycle                                               |
-|1.5      |Ability to generate full Attack-Decay-Sustain-Release envelopes      |Active
+|1.4      |Ability to control additional parameters on generated waveforms      |Done
+|  1.4a   |Square wave duty cycle                                               |Done
+|1.5      |Ability to generate full Attack-Decay-Sustain-Release envelopes      |Done
 |1.6      |Ability to use an Low Frequency Oscillator signal to modulate one or several commands (in which case button(s) must be added) |
 |1.7      |Ability to process MIDI input                                        |
 |1.8      |Ability to process MIDI Output                                       |Closed  |Useless feature
