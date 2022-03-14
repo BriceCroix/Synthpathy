@@ -95,29 +95,14 @@ void ActiveNote::release(unsigned int time_released_fs, float sustain, unsigned 
 }
 
 
-float ActiveNote::get_audio_value(unsigned int time_fs, TypeWaveform type_waveform, float sustain) const
+float ActiveNote::get_audio_value(unsigned int time_fs, float(*waveform)(float, float, float), float texture, float sustain) const
 {
     if (time_fs >= m_time_stop_fs)
     {
         return 0.f;
     }
 
-    float l_audio_value;
-
-    switch (type_waveform)
-    {
-    case TypeWaveform::square:
-        l_audio_value = square_wave(static_cast<float>(time_fs)/AUDIO_SAMPLING_FREQUENCY, m_frequency);
-        break;
-
-    case TypeWaveform::saw:
-        l_audio_value = saw_wave(static_cast<float>(time_fs)/AUDIO_SAMPLING_FREQUENCY, m_frequency);
-        break;
-    
-    default:
-        l_audio_value = 0.f;
-        break;
-    }
+    float l_audio_value = waveform(static_cast<float>(time_fs)/AUDIO_SAMPLING_FREQUENCY, m_frequency, texture);
 
     l_audio_value *= get_ADSR_envelope(time_fs, sustain) * m_velocity;
     return l_audio_value;

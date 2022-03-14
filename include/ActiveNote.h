@@ -151,11 +151,12 @@ public:
      * @brief Get the audio value at the given time.
      * TODO : add a "texture parameter"
      * @param time_fs The time in number of periods of the audio sampling frequency.
-     * @param typewaveform The selected type of waveform.
+     * @param waveform The selected type of waveform.
+     * @param texture The texture parameter of the waveform.
      * @param sustain Sustain level between 0 and 1.
      * @return float 
      */
-    float get_audio_value(unsigned int time_fs, TypeWaveform typewaveform, float sustain) const;
+    float get_audio_value(unsigned int time_fs, float(*waveform)(float, float, float), float texture, float sustain) const;
 
     /**
      * @brief Indicates whether the note is still alive or not.

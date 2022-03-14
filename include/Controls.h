@@ -99,6 +99,7 @@ protected:
     static constexpr unsigned int POTENTIOMETER_ATTACK_IDX = 0;
     static constexpr unsigned int POTENTIOMETER_SUSTAIN_IDX = 1;
     static constexpr unsigned int POTENTIOMETER_RESERVED_IDX = 2;
+    static constexpr unsigned int POTENTIOMETER_TEXTURE_IDX = 0xFF;
     /**@}*/
 
     /**
@@ -246,10 +247,16 @@ protected:
     uint32_t m_leds = 0;
 
     /**
-     * @brief The currently selected type of waveform.
+     * @brief The currently selected type of waveform, as a pointer to the actual waveform function.
      * 
      */
-    TypeWaveform m_selected_waveform = TypeWaveform::square;
+    float(*m_selected_waveform)(float, float, float)  = &square_wave;
+
+    /**
+     * @brief The additionnal parameter of each waveform function.
+     * 
+     */
+    float m_texture;
 
     /**
      * @brief The currently selected octave.
@@ -305,10 +312,25 @@ public:
 
     /**
      * @brief Get the currently selected type of waveform.
+     * This function returned pointer has signature :
+     * float waveform(float time, float frequency, float texture);
      * 
-     * @return TypeWaveform 
+     * @return float(*)(float, float, float) 
      */
-    inline TypeWaveform get_selected_waveform() const { return m_selected_waveform; }
+    inline float(*get_selected_waveform(void) const)(float, float, float) { return m_selected_waveform; }
+
+    /**
+     * @brief Set the currently selected type of waveform.
+     * 
+     */
+    inline void set_selected_waveform(float (*type_waveform)(float, float, float)) { m_selected_waveform = type_waveform; }
+
+    /**
+     * @brief Get the texture parameter for the selected waveform.
+     * 
+     * @return float 
+     */
+    inline float get_texture() const { return m_texture; }
 
     /**
      * @brief The attack value of the ADSR envelope, in number of periods of the audio sampling frequency.

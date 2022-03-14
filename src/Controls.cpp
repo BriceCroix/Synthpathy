@@ -48,7 +48,8 @@ Controls::Controls()
 
     // Default selection
     m_selected_octave = 3;
-    m_selected_waveform = TypeWaveform::square;
+    m_selected_waveform = &square_wave;
+    m_texture = 0.5;
     m_leds |= (1<<LED_WAVEFORM_SQUARE_ENABLED_IDX);
 
     // Default ADSR
@@ -196,16 +197,16 @@ void Controls::process_buttons()
     // Process waveform change
     if((m_buttons & (1<<BUTTON_WAVEFORM_SELECT_IDX)) && ~(m_buttons_old & (1<<BUTTON_WAVEFORM_SELECT_IDX)))
     {
-        if(m_selected_waveform == TypeWaveform::square)
+        if(m_selected_waveform == &square_wave)
         {
-            m_selected_waveform = TypeWaveform::saw;
+            m_selected_waveform = &saw_wave;
             m_leds &= ~(1<<LED_WAVEFORM_SQUARE_ENABLED_IDX);
             m_leds |= (1<<LED_WAVEFORM_SAW_ENABLED_IDX);
         }
         // There are only two waveforms possible
         else
         {
-            m_selected_waveform = TypeWaveform::square;
+            m_selected_waveform = &square_wave;
             m_leds &= ~(1<<LED_WAVEFORM_SAW_ENABLED_IDX);
             m_leds |= (1<<LED_WAVEFORM_SQUARE_ENABLED_IDX);
         }
@@ -260,6 +261,24 @@ void Controls::set_potentiometer(unsigned int potentiometer_idx, uint8_t value)
 
     case POTENTIOMETER_RESERVED_IDX:
         // Nothing to do here while this potentiometer is not used
+        break;
+
+    case POTENTIOMETER_TEXTURE_IDX:
+        // Update texture parameter according to selected waveform
+        if(m_selected_waveform == &square_wave)
+        {
+            // Square wave can have a duty cycle between 0 and 0.5
+            m_texture = 0.5 * static_cast<float>(value) / std::numeric_limits<uint8_t>::max();
+        }else
+        if(m_selected_waveform == &square_wave)
+        {
+            // Saw wave does not have a texture parameter yet
+            m_texture = 0;
+        }
+        else
+        {
+            // Unhandled case, should not occur
+        }
     
     default:
         // Unhandled case, should not occur

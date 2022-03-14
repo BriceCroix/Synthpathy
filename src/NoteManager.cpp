@@ -142,7 +142,12 @@ float NoteManager::get_audio_thread(unsigned int time_fs, unsigned int i_core)
     // Add output of each single note
     for(unsigned int i = i_core; i < NB_ACTIVE_NOTES; i += NB_CORES)
     {
-        const float l_audio_value_single = m_active_notes_pool[i].get_audio_value(time_fs, controls.get_selected_waveform(), controls.get_sustain());    
+        const float l_audio_value_single = m_active_notes_pool[i].get_audio_value(
+            time_fs,
+            controls.get_selected_waveform(),
+            controls.get_texture(),
+            controls.get_sustain()
+        );    
         l_audio_value += l_audio_value_single;
     }
     return l_audio_value;
