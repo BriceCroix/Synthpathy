@@ -21,25 +21,34 @@
 
 #include "global.h"
 
+#include "pico/float.h"
+
 
 /**
  * @brief Value of a square wave of given parameters.
  * 
  * @param time The time in seconds.
- * @param frequency The frequency in Hz.
+ * @param period The period in seconds.
  * @param duty_cycle The duty cycle between 0 and 1.
  * @return float 
  */
-float square_wave(float time, float frequency, float duty_cycle = 0.5f);
+inline float square_wave(float time, float period, float duty_cycle = 0.5f)
+{
+    return (fmod(time, period) < (period * duty_cycle)) ? 1.0f : -1.0f;
+}
 
 /**
  * @brief Value of a rising wave of given parameters.
  * 
  * @param time The time in seconds.
- * @param frequency The frequency in Hz.
+ * @param period The period in seconds.
  * @param reserved Unused parameter.
  * @return float 
  */
-float saw_wave(float time, float frequency, float reserved = 0.f);
+inline float saw_wave(float time, float period, float reserved = 0.f)
+{
+    return (2 * fmod(time, period) / period) - 1.f;
+}
+
 
 #endif //SYNTHPATHY_WAVEFORMS_H_

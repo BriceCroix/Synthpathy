@@ -36,10 +36,10 @@ protected:
     MidiByte m_midi_note;
 
     /**
-     * @brief The frequency of the note in Hertz.
+     * @brief The period of the note in seconds.
      * 
      */
-    float m_frequency;
+    float m_period;
 
     /**
      * @brief The velocity of the note between 0 and 1.
@@ -149,7 +149,7 @@ public:
 
     /**
      * @brief Get the audio value at the given time.
-     * TODO : add a "texture parameter"
+     * 
      * @param time_fs The time in number of periods of the audio sampling frequency.
      * @param waveform The selected type of waveform.
      * @param texture The texture parameter of the waveform.
