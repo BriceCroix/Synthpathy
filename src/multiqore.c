@@ -19,17 +19,8 @@
 #include "multiqore.h"
 
 #include "pico/multicore.h"
-#include "pico/util/queue.h"
-#include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
 
 #define MULTIQORE_PRINTF_BUFFER 128U
-
-
-queue_t multiqore_call_queue;
-
-queue_t multiqore_results_queue;
 
 /**
  * @brief The task internally used by the other core.
@@ -37,56 +28,20 @@ queue_t multiqore_results_queue;
  */
 static void core1_task()
 {
-    struct multiqore_call_element call_element;
-    multiqore_results_t result;
+    multicore_fifo_drain();
     while(1)
     {
-        // Wait for order from core 0
-        queue_remove_blocking(&multiqore_call_queue, &call_element);
-        // Execute order
-        (call_element.function)(call_element.params);
+        // Wait for order from core 0, cast to function ptr that returns and take void, and call
+        const void (*task)(void) = (void (*)(void))multicore_fifo_pop_blocking();
+        //printf("C1 : received task 0x%x\n", task);
+        (*task)();
+        //printf("C1 : finished task 0x%x\n", task);
     }
 }
 
 
 void multiqore_initialize()
 {
-    queue_init(&multiqore_call_queue, sizeof(struct multiqore_call_element), SIZE_MULTIQORE_QUEUE);
-    queue_init(&multiqore_results_queue, sizeof(multiqore_results_t), SIZE_MULTIQORE_QUEUE);
+    multicore_fifo_drain();
     multicore_launch_core1(core1_task);
-}
-
-
-struct multiqore_printf_params
-{
-    const char* str;
-};
-
-void multiqore_printf_wrapper(void* params)
-{
-    // Copy given string
-    char str[MULTIQORE_PRINTF_BUFFER];
-    strcpy(str, ((struct multiqore_printf_params*)params)->str);
-    // Inform main core that copy is done by sending random data
-    multiqore_send_result((void*)str);
-    // Actually print
-    printf(str);
-}
-
-
-void multiqore_printf(const char* format, ...)
-{
-    // Recover list of arguments
-    va_list args;
-    va_start(args, format);
-    // Format string
-    char str[MULTIQORE_PRINTF_BUFFER];
-    vsprintf(str, format, args);
-    // Send task to other core
-    struct multiqore_printf_params params = {str};
-    multiqore_start_task(&multiqore_printf_wrapper, (void*)(&params));
-    // Wait for other core to take ownership of data
-    multiqore_get_result_uint32();
-    // Release list of arguments
-    va_end(args);
 }

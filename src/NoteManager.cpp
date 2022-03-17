@@ -116,12 +116,15 @@ float NoteManager::get_audio(unsigned int time_fs)
 
     // Start computation of odd indices on core 1
     struct note_manager_get_audio_thread_params params = {time_fs, 1};
-    multiqore_start_task(&note_manager_get_audio_thread_wrapper, &params);
+    multiqore_start_task(&note_manager_get_audio_thread_wrapper);
+    multiqore_send_params(&params, sizeof(struct note_manager_get_audio_thread_params));
     gpio_put(PIN_LED_ONBOARD, false);
     // Start computation of event indices on core 0
     float l_audio_value = get_audio_thread(time_fs, 0);
     // Add together the two halves of sum
-    l_audio_value += multiqore_get_result_float();
+    float l_audio_value_other_core;
+    multiqore_get_result(&l_audio_value_other_core, sizeof(float));
+    l_audio_value += l_audio_value_other_core;
 
     // Prevent audio signal from exceeding amplitude 1
     l_audio_value /= NB_ACTIVE_NOTES;
@@ -130,14 +133,13 @@ float NoteManager::get_audio(unsigned int time_fs)
     printf("%f\n", l_audio_value);
     #endif
 
-
     return l_audio_value;
 }
 
 
 float NoteManager::get_audio_thread(unsigned int time_fs, unsigned int i_core)
 {
-    Controls& controls = Controls::get_instance();
+    const Controls& controls = Controls::get_instance();
     float l_audio_value = 0;
     // Add output of each single note
     for(unsigned int i = i_core; i < NB_ACTIVE_NOTES; i += NB_CORES)
@@ -154,11 +156,13 @@ float NoteManager::get_audio_thread(unsigned int time_fs, unsigned int i_core)
 }
 
 
-void note_manager_get_audio_thread_wrapper(void* params)
+void note_manager_get_audio_thread_wrapper()
 {
     NoteManager& note_manager = NoteManager::get_instance();
-    const unsigned int time_fs = ((struct note_manager_get_audio_thread_params*)params)->time_fs;
-    const unsigned int i_core = ((struct note_manager_get_audio_thread_params*)params)->i_core;
-    const float result = note_manager.get_audio_thread(time_fs, i_core);
-    multiqore_send_result((void*)(&result)); 
+
+    struct note_manager_get_audio_thread_params params;
+    multiqore_get_params(&params, sizeof(struct note_manager_get_audio_thread_params));
+
+    const float result = note_manager.get_audio_thread(params.time_fs, params.i_core);
+    multiqore_send_result(&result, sizeof(float)); 
 }

@@ -62,7 +62,7 @@ protected:
      */
     float get_audio_thread(unsigned int time_fs, unsigned int i_core);
 
-    friend void note_manager_get_audio_thread_wrapper(void* params);
+    friend void note_manager_get_audio_thread_wrapper();
 
 
 public:
@@ -110,8 +110,7 @@ struct note_manager_get_audio_thread_params
  * @brief Wrapper to the "thread" used by NoteManager::get_audio.
  * This method needs to be outside NoteManager class in order to compile,
  * but it should never be used outside NoteManager::get_audio.
- * @param params 
  */
-void note_manager_get_audio_thread_wrapper(void* params);
+void note_manager_get_audio_thread_wrapper();
 
 #endif //SYNTHPATHY_NOTEMANAGER_H_

@@ -19,7 +19,8 @@
 #ifndef MULTIQORE_H_
 #define MULTIQORE_H_
 
-#include "pico/util/queue.h"
+#include "pico/multicore.h"
+
 
 /**
  * @brief The number of cores on the RP2040.
@@ -28,46 +29,10 @@
 #define NB_CORES 2U
 
 /**
- * @brief The size of the queues used for multiprocessing.
- * 
- */
-#define SIZE_MULTIQORE_QUEUE 2U
-
-/**
- * @brief The type used internaly for the results queue.
+ * @brief The type used internaly for the fifos.
  * It is important that this type is 32 bits since the RP2040 is a 32 bits processor.
  */
-typedef uint32_t multiqore_results_t;
-
-/**
- * @brief An element of the call queue used for multiprocessing.
- * 
- */
-struct multiqore_call_element
-{
-    /**
-     * @brief Function pointer to the method to be called on other core.
-     * 
-     */
-    void (*function)(void*);
-    /**
-     * @brief Pointer to a parameters structure used by the function
-     * 
-     */
-    void* params;
-};
-
-/**
- * @brief The call queue internally used to call methods on other core.
- * 
- */
-extern queue_t multiqore_call_queue;
-
-/**
- * @brief The call queue internally used to return results from other core.
- * 
- */
-extern queue_t multiqore_results_queue;
+typedef uint32_t multiqore_fifo_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -80,114 +45,49 @@ extern "C" {
 void multiqore_initialize();
 
 /**
- * @brief Send result from other core to main core.
- * Result should be pointer to either int32_t, uin32_t, or float.
- * Example :
- *     float res = 4.5f;
- *     multiqore_send_result((void*)(&f));
- * @param result 
+ * @brief Send data from one core to the other.
+ * 
+ * @param data Pointer to the data to send.
+ * @param data_size Size of the data in number of bytes.
  */
-inline void multiqore_send_result(void* result)
+inline void multiqore_send(const void* data, size_t data_size)
 {
-    queue_try_add(&multiqore_results_queue, (multiqore_results_t*)(&result));
+    for(const multiqore_fifo_t* ptr = (multiqore_fifo_t*)data; ptr < (multiqore_fifo_t*)((char*)data + data_size); ptr++)
+    {
+        //printf("C1 : Sending 0x%08x from @0x%p\n", *ptr, ptr);
+        multicore_fifo_push_blocking(*ptr);
+    }
 }
+#define multiqore_send_params multiqore_send
+#define multiqore_send_result multiqore_send
 
 /**
- * @brief Used to get result from other core.
- * This method waits for the other core to finish its task.
- * @return uint32_t The result.
+ * @brief Get data from the other core.
+ * 
+ * @param data Pointer where to store data.
+ * @param data_size Size of the data in number of bytes.
  */
-inline uint32_t multiqore_get_result_uint32()
+inline void multiqore_get(void* data, size_t data_size)
 {
-    multiqore_results_t result;
-    queue_remove_blocking(&multiqore_results_queue, &result);
-    return *((uint32_t*)(&result));
+    for(multiqore_fifo_t* ptr = (multiqore_fifo_t*)data; ptr < (multiqore_fifo_t*)((char*)data + data_size); ptr++)
+    {
+        (*ptr) = multicore_fifo_pop_blocking();
+        //printf("C1 : Storing 0x%08x at @0x%p\n", *ptr, ptr);
+    }
 }
+#define multiqore_get_params multiqore_get
+#define multiqore_get_result multiqore_get
 
-/**
- * @brief Used to get result from other core.
- * This method waits for the other core to finish its task.
- * @return int32_t The result.
- */
-inline int32_t multiqore_get_result_int32()
-{
-    multiqore_results_t result;
-    queue_remove_blocking(&multiqore_results_queue, &result);
-    return *((int32_t*)(&result));
-}
-
-/**
- * @brief Used to get result from other core.
- * This method waits for the other core to finish its task.
- * @return float The result.
- */
-inline float multiqore_get_result_float()
-{
-    multiqore_results_t result;
-    queue_remove_blocking(&multiqore_results_queue, &result);
-    return *((float*)(&result));
-}
 
 /**
  * @brief Start a task on other core.
- * data at params should remain accessible during all processing.
- * How to use : say you want to parallelize a function that computes the sum of inverses up to N :
  * 
- * // main.cpp
- * 
- * float sum_of_inverses(int i_start, i_end)
- * {
- *     float result = 0;
- *     for(int i = i_start; i < i_end; ++i)
- *     {
- *         result += 1.f / i;
- *     }
- *     return result;
- * }
- * 
- * struct sum_of_inverses_params
- * {
- *     int i_start;
- *     int i_end;
- * }
- * 
- * void sum_of_inverses_wrapper(void* params)
- * {
- *     // Reinterpret pointer to access parameters
- *     const i_start = ((struct sum_of_inverses_params*)params)->i_start;
- *     const i_end = ((struct sum_of_inverses_params*))params->i_end;
- *     const float result = sum_of_inverses(i_start, i_end);
- *     multiqore_send_result((void*)(&result)); 
- * }
- * 
- * int main()
- * {
- *     int N = 1000;
- *     // Core 1 handles second half of sum
- *     struct sum_of_inverses_params params = {N/2, N};
- *     multiqore_start_task(&sum_of_inverses_wrapper, &params);
- *     // Core 0 handles first half of sum
- *     float result = sum_of_inverses(0, N/2);
- *     // Add together the two halves of sum
- *     result += multiqore_get_result_float();
- *     // Print result using other core resources
- *     multiqore_printf("Result is %f\n", result);
- * }
- * 
- * @param task Function pointer to task to perform.
- * @param params Pointer to parameters of function.
+ * @param task Function pointer to be executed on second core.
  */
-inline void multiqore_start_task(void(*task)(void*), void* params)
+inline void multiqore_start_task(void(*task)(void))
 {
-    struct multiqore_call_element e = {task, params};
-    queue_try_add(&multiqore_call_queue, &e);
+    multicore_fifo_push_blocking((multiqore_fifo_t)task);
 }
-
-/**
- * @brief printf on other core in order not to block main one.
- * 
- */
-void multiqore_printf(const char* format, ...);
 
 
 #ifdef __cplusplus

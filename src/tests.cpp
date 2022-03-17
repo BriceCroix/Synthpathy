@@ -45,7 +45,7 @@ void perform_tests()
     
     while(1)
     {
-        multiqore_printf("\n\n==================== Synthpathy tests ====================\n\n");
+        printf("\n\n==================== Synthpathy tests ====================\n\n");
 
         t_us = time_us_32();
         for(unsigned int i = 0; i < NB_TESTS; ++i)
@@ -54,7 +54,7 @@ void perform_tests()
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
-        multiqore_printf("controls.read_buttons() : %u ns\n", duration_ns);
+        printf("controls.read_buttons() : %u ns\n", duration_ns);
 
         /*----------------------------------------------------------------------------------------*/
 
@@ -65,7 +65,7 @@ void perform_tests()
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
-        multiqore_printf("controls.process_buttons() : %u ns\n", duration_ns);
+        printf("controls.process_buttons() : %u ns\n", duration_ns);
 
         /*----------------------------------------------------------------------------------------*/
 
@@ -76,7 +76,7 @@ void perform_tests()
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
-        multiqore_printf("note_manager.update_active_notes(...) [Empty midi queue] : %u ns\n", duration_ns);
+        printf("note_manager.update_active_notes(...) [Empty midi queue] : %u ns\n", duration_ns);
 
         /*----------------------------------------------------------------------------------------*/
 
@@ -95,7 +95,7 @@ void perform_tests()
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
-        multiqore_printf("note_manager.update_active_notes(...) [push + Not empty midi queue] : %u ns\n", duration_ns);
+        printf("note_manager.update_active_notes(...) [push + Not empty midi queue] : %u ns\n", duration_ns);
 
         /*----------------------------------------------------------------------------------------*/
 
@@ -107,7 +107,7 @@ void perform_tests()
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
-        multiqore_printf("active_note.get_audio_value(...) [square wave, alive] : %u ns\n", duration_ns);
+        printf("active_note.get_audio_value(...) [square wave, alive] : %u ns\n", duration_ns);
 
         /*----------------------------------------------------------------------------------------*/
 
@@ -118,7 +118,7 @@ void perform_tests()
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
-        multiqore_printf("active_note.get_audio_value(...) [saw wave, alive] : %u ns\n", duration_ns);
+        printf("active_note.get_audio_value(...) [saw wave, alive] : %u ns\n", duration_ns);
 
         /*----------------------------------------------------------------------------------------*/
 
@@ -130,7 +130,7 @@ void perform_tests()
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
-        multiqore_printf("active_note.get_audio_value(...) [square wave, killed] : %u ns\n", duration_ns);
+        printf("active_note.get_audio_value(...) [square wave, killed] : %u ns\n", duration_ns);
 
         /*----------------------------------------------------------------------------------------*/
 
@@ -152,7 +152,7 @@ void perform_tests()
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
-        multiqore_printf("note_manager.get_audio(...) [Full pool, square] : %u ns\n", duration_ns);
+        printf("note_manager.get_audio(...) [Full pool, square] : %u ns\n", duration_ns);
 
         controls.set_selected_waveform(&saw_wave);
 
@@ -164,7 +164,7 @@ void perform_tests()
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
-        multiqore_printf("note_manager.get_audio(...) [Full pool, saw] : %u ns\n", duration_ns);
+        printf("note_manager.get_audio(...) [Full pool, saw] : %u ns\n", duration_ns);
 
         // Release notes
         for(unsigned int i = 0; i < NB_ACTIVE_NOTES; i++)
@@ -173,7 +173,7 @@ void perform_tests()
             note_manager.update_active_notes(0);
         }
 
-        multiqore_printf("\n====================   End of tests   ====================\n\n");
+        printf("\n====================   End of tests   ====================\n\n");
         sleep_ms(5000);
     }
 }
