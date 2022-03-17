@@ -17,6 +17,7 @@
  */
 
 #include "ActiveNote.h"
+#include "frequencies.h"
 
 #include <limits>
 
@@ -36,7 +37,7 @@ ActiveNote::ActiveNote(MidiByte _midi_note, float _velocity, unsigned int _time_
     m_attack_fs(_attack_fs),
     m_decay_fs(_decay_fs)
 {
-    m_period = MIDI_PERIODS_S[_midi_note];
+    m_period_fs = MIDI_PERIODS_FS[_midi_note];
 
     m_time_released_fs = std::numeric_limits<unsigned int>::max();
     m_time_stop_fs = std::numeric_limits<unsigned int>::max();
@@ -95,14 +96,14 @@ void ActiveNote::release(unsigned int time_released_fs, float sustain, unsigned 
 }
 
 
-float ActiveNote::get_audio_value(unsigned int time_fs, float(*waveform)(float, float, float), float texture, float sustain) const
+float ActiveNote::get_audio_value(unsigned int time_fs, float(*waveform)(unsigned int, unsigned int, float), float texture, float sustain) const
 {
     if (time_fs >= m_time_stop_fs)
     {
         return 0.f;
     }
 
-    float l_audio_value = waveform(static_cast<float>(time_fs)/AUDIO_SAMPLING_FREQUENCY, m_period, texture);
+    float l_audio_value = waveform(time_fs, m_period_fs, texture);
 
     l_audio_value *= get_ADSR_envelope(time_fs, sustain) * m_velocity;
     return l_audio_value;

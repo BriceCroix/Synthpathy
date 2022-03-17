@@ -36,10 +36,10 @@ protected:
     MidiByte m_midi_note;
 
     /**
-     * @brief The period of the note in seconds.
+     * @brief The period of the note in number of samples.
      * 
      */
-    float m_period;
+    unsigned int m_period_fs;
 
     /**
      * @brief The velocity of the note between 0 and 1.
@@ -156,7 +156,7 @@ public:
      * @param sustain Sustain level between 0 and 1.
      * @return float 
      */
-    float get_audio_value(unsigned int time_fs, float(*waveform)(float, float, float), float texture, float sustain) const;
+    float get_audio_value(unsigned int time_fs, float(*waveform)(unsigned int, unsigned int, float), float texture, float sustain) const;
 
     /**
      * @brief Indicates whether the note is still alive or not.

@@ -27,27 +27,27 @@
 /**
  * @brief Value of a square wave of given parameters.
  * 
- * @param time The time in seconds.
- * @param period The period in seconds.
+ * @param time The time in number of samples.
+ * @param period The period in number of samples.
  * @param duty_cycle The duty cycle between 0 and 1.
  * @return float 
  */
-inline float square_wave(float time, float period, float duty_cycle = 0.5f)
+inline float square_wave(unsigned int time, unsigned int period, float duty_cycle = 0.5f)
 {
-    return (fmod(time, period) < (period * duty_cycle)) ? 1.0f : -1.0f;
+    return ((time % period) < (period * duty_cycle)) ? 1.0f : -1.0f;
 }
 
 /**
  * @brief Value of a rising wave of given parameters.
  * 
- * @param time The time in seconds.
- * @param period The period in seconds.
+ * @param time The time in number of samples.
+ * @param period The period in number of samples.
  * @param reserved Unused parameter.
  * @return float 
  */
-inline float saw_wave(float time, float period, float reserved = 0.f)
+inline float saw_wave(unsigned int time, unsigned int period, float reserved = 0.f)
 {
-    return (2 * fmod(time, period) / period) - 1.f;
+    return (2 * (time % period) / period) - 1.f;
 }
 
 
