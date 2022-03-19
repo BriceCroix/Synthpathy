@@ -129,10 +129,6 @@ float NoteManager::get_audio(unsigned int time_fs)
     // Prevent audio signal from exceeding amplitude 1
     l_audio_value /= NB_ACTIVE_NOTES;
 
-    #ifdef DEBUG_AUDIO
-    printf("%f\n", l_audio_value);
-    #endif
-
     return l_audio_value;
 }
 

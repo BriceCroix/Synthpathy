@@ -40,6 +40,7 @@ if __name__ == '__main__':
     ax.grid()
     ax.set_xlabel("Time (s)")
     ax.set_ylabel("Audio signal")
+    ax.set_ylim([-1.1, 1.1])
     ax.set_title("Measured audio signal")
 
     # Frequency

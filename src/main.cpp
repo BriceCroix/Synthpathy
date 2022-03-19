@@ -39,6 +39,7 @@
 #include "Controls.h"
 #include "NoteManager.h"
 #include "multiqore.h"
+#include "Biquad.h"
 
 int main() {
     // Start by overclocking the controler
@@ -65,7 +66,6 @@ int main() {
     multiqore_initialize();
     initialize_pwm_audio();
     initialize_controls();
-    //TODO : initialize_adc()
     //TODO : initialize_uart()
 
     #if (defined(DEBUG) || defined(DEBUG_AUDIO))
@@ -77,6 +77,10 @@ int main() {
     Controls& controls = Controls::get_instance();
     // Retrieve the notes manager
     NoteManager& active_note_manager = NoteManager::get_instance();
+    // Create the low-pass filter and acknowledge that controls were taken into account
+    Biquad l_filter = Biquad::get_low_pass(controls.get_filter_cutoff(), AUDIO_SAMPLING_FREQUENCY, controls.get_filter_Q());
+    controls.have_filter_params_changed();
+
 
     // A local value of time, that can be a little late on the global one
     unsigned int l_time_fs = 0;
@@ -100,16 +104,30 @@ int main() {
         {
             controls.process_buttons();
         }
+
         // Create, release and update notes
         active_note_manager.update_active_notes(l_time_fs);
+
+        // Update low-pass filter
+        // TODO : Avoid instability due to internal filter buffers
+        if(controls.have_filter_params_changed())
+        {
+            l_filter.copy_coefficients(Biquad::get_low_pass(controls.get_filter_cutoff(), AUDIO_SAMPLING_FREQUENCY, controls.get_filter_Q()));
+        }
 
         // Compute next samples
         while(!g_output_audio_buffer.is_full())
         {
             // Compute audio sample
-            const float l_audio_sample = active_note_manager.get_audio(l_time_fs);
+            float l_audio_sample = active_note_manager.get_audio(l_time_fs);
+            // Filter audio sample
+            l_audio_sample = l_filter.process(l_audio_sample);
 
             // Effects can be added on the audio sample here
+
+            #ifdef DEBUG_AUDIO
+            printf("%f\n", l_audio_sample);
+            #endif
 
             #if defined(DEBUG)
             if(g_output_audio_buffer.is_empty())

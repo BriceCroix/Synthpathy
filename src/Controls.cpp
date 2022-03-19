@@ -25,6 +25,7 @@
 #include "hardware/irq.h"
 
 #include <limits>
+#include <math.h>
 
 #ifdef DEBUG
 #include <stdio.h>
@@ -53,10 +54,16 @@ Controls::Controls()
     m_leds |= (1<<LED_WAVEFORM_SQUARE_ENABLED_IDX);
 
     // Default ADSR
-    m_attack_fs = 0.1 * AUDIO_SAMPLING_FREQUENCY; // 0.1 second
-    m_decay_fs = m_attack_fs;
-    m_sustain = 0.5f;
-    m_release_fs = 2 * m_attack_fs;
+    m_attack_fs = (ATTACK_MAX_FS - ATTACK_MIN_FS) / 2;
+    m_decay_fs = 0.1 * AUDIO_SAMPLING_FREQUENCY; // 0.1 second
+    m_sustain = (SUSTAIN_MAX - SUSTAIN_MIN) / 2;
+    m_release_fs = (RELEASE_MAX_FS - RELEASE_MIN_FS) / 2;
+
+    // Initialize filter parameters
+    m_filter_cutoff = sqrtf(FILTER_CUTOFF_MAX_HZ * FILTER_CUTOFF_MIN_HZ);
+    m_filter_cutoff_old = m_filter_cutoff;
+    m_filter_Q = M_SQRT1_2;
+    m_filter_Q_old = m_filter_Q;
 
     // Get ready for first button matrix read operation
     gpio_put_1_from_high_z(PIN_BUTTON_MATRIX_OUT[m_button_matrix_out_idx]);
@@ -259,8 +266,9 @@ void Controls::set_potentiometer(unsigned int potentiometer_idx, uint8_t value)
         m_sustain = SUSTAIN_MIN + ((SUSTAIN_MAX-SUSTAIN_MIN) * static_cast<float>(value) / std::numeric_limits<uint8_t>::max());
         break;
 
-    case POTENTIOMETER_RESERVED_IDX:
-        // Nothing to do here while this potentiometer is not used
+    case POTENTIOMETER_FILTER_CUTOFF_IDX:
+        // TODO Filter cutoff frequency should not be linear
+        m_filter_cutoff = FILTER_CUTOFF_MIN_HZ + ((FILTER_CUTOFF_MAX_HZ-FILTER_CUTOFF_MIN_HZ) * static_cast<float>(value) / std::numeric_limits<uint8_t>::max());
         break;
 
     case POTENTIOMETER_TEXTURE_IDX:
@@ -284,6 +292,14 @@ void Controls::set_potentiometer(unsigned int potentiometer_idx, uint8_t value)
         // Unhandled case, should not occur
         break;
     }
+}
+
+bool Controls::have_filter_params_changed()
+{
+    const bool l_has_changed = (m_filter_cutoff != m_filter_cutoff_old) || (m_filter_Q != m_filter_Q_old);
+    m_filter_cutoff_old = m_filter_cutoff;
+    m_filter_Q_old = m_filter_Q;
+    return l_has_changed;
 }
 
 

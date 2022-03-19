@@ -98,7 +98,7 @@ protected:
      */
     static constexpr unsigned int POTENTIOMETER_ATTACK_IDX = 0;
     static constexpr unsigned int POTENTIOMETER_SUSTAIN_IDX = 1;
-    static constexpr unsigned int POTENTIOMETER_RESERVED_IDX = 2;
+    static constexpr unsigned int POTENTIOMETER_FILTER_CUTOFF_IDX = 2;
     static constexpr unsigned int POTENTIOMETER_TEXTURE_IDX = 0xFF;
     /**@}*/
 
@@ -124,7 +124,7 @@ protected:
      * @brief The minimum attack duration in number of samples.
      * 
      */
-    static constexpr unsigned ATTACK_MIN_FS = ATTACK_MIN_S * AUDIO_SAMPLING_FREQUENCY;
+    static constexpr unsigned int ATTACK_MIN_FS = ATTACK_MIN_S * AUDIO_SAMPLING_FREQUENCY;
 
     /**
      * @brief The maximum attack duration in seconds.
@@ -136,7 +136,7 @@ protected:
      * @brief The maximum attack duration in number of samples.
      * 
      */
-    static constexpr unsigned ATTACK_MAX_FS = ATTACK_MAX_S * AUDIO_SAMPLING_FREQUENCY;
+    static constexpr unsigned int ATTACK_MAX_FS = ATTACK_MAX_S * AUDIO_SAMPLING_FREQUENCY;
 
     /**
      * @brief The minimum decay duration in seconds.
@@ -148,7 +148,7 @@ protected:
      * @brief The minimum decay duration in number of samples.
      * 
      */
-    static constexpr unsigned DECAY_MIN_FS = DECAY_MIN_S * AUDIO_SAMPLING_FREQUENCY;
+    static constexpr unsigned int DECAY_MIN_FS = DECAY_MIN_S * AUDIO_SAMPLING_FREQUENCY;
 
     /**
      * @brief The maximum decay duration in seconds.
@@ -160,7 +160,7 @@ protected:
      * @brief The maximum decay duration in number of samples.
      * 
      */
-    static constexpr unsigned DECAY_MAX_FS = DECAY_MAX_S * AUDIO_SAMPLING_FREQUENCY;
+    static constexpr unsigned int DECAY_MAX_FS = DECAY_MAX_S * AUDIO_SAMPLING_FREQUENCY;
 
     /**
      * @brief The minimum sustain value.
@@ -184,7 +184,7 @@ protected:
      * @brief The minimum release duration in number of samples.
      * 
      */
-    static constexpr unsigned RELEASE_MIN_FS = RELEASE_MIN_S * AUDIO_SAMPLING_FREQUENCY;
+    static constexpr unsigned int RELEASE_MIN_FS = RELEASE_MIN_S * AUDIO_SAMPLING_FREQUENCY;
 
     /**
      * @brief The maximum release duration in seconds.
@@ -196,7 +196,19 @@ protected:
      * @brief The maximum release duration in number of samples.
      * 
      */
-    static constexpr unsigned RELEASE_MAX_FS = RELEASE_MAX_S * AUDIO_SAMPLING_FREQUENCY;
+    static constexpr unsigned int RELEASE_MAX_FS = RELEASE_MAX_S * AUDIO_SAMPLING_FREQUENCY;
+
+    /**
+     * @brief The minimum cutoff frequency of the low-pass filter in Hertz.
+     * 
+     */
+    static constexpr float FILTER_CUTOFF_MIN_HZ = 20.f;
+
+    /**
+     * @brief The maximum cutoff frequency of the low-pass filter in Hertz.
+     * 
+     */
+    static constexpr float FILTER_CUTOFF_MAX_HZ = 20000.f;
     
 
     // Private members ---------------------------------------------------------
@@ -288,6 +300,30 @@ protected:
      */
     unsigned int m_release_fs;
 
+    /**
+     * @brief The value of the low pass filter cutoff in Hertz.
+     * 
+     */
+    float m_filter_cutoff;
+
+    /**
+     * @brief The previous value of the low pass filter cutoff in Hertz.
+     * 
+     */
+    float m_filter_cutoff_old;
+
+    /**
+     * @brief The value of the low pass filter Q factor;
+     * 
+     */
+    float m_filter_Q;
+
+    /**
+     * @brief The previous value of the low pass filter Q factor;
+     * 
+     */
+    float m_filter_Q_old;
+
 
     // Private methods ---------------------------------------------------------
 
@@ -296,6 +332,17 @@ protected:
      * 
      */
     void write_leds() const;
+
+    /**
+     * @brief Called by the ADC after a conversion is complete.
+     * Can also be used to set the potentiometers values in software.
+     * @param potentiometer_idx The index of the potentiometer.
+     * @param value The value of the ADC.
+     */
+    void set_potentiometer(unsigned int potentiometer_idx, uint8_t value);
+
+    // ADC interrupt handler needs to be able to modify the Controls.
+    friend void adc_irq_handler();
 
 
 public:
@@ -356,6 +403,27 @@ public:
      */
     inline unsigned int get_release_fs() const { return m_release_fs; }
 
+    /**
+     * @brief The filter cutoff value in Hertz
+     * 
+     * @return float 
+     */
+    inline float get_filter_cutoff() const { return m_filter_cutoff; }
+
+    /**
+     * @brief The filter Q factor.
+     * 
+     * @return float 
+     */
+    inline float get_filter_Q() const { return m_filter_Q; }
+
+    /**
+     * @brief Indicates if the filter parameters have been modified since last call.
+     * 
+     * @return true 
+     * @return false 
+     */
+    bool have_filter_params_changed();
 
     /**
      * @brief Reads the buttons and update its internal values accordingly.
@@ -371,14 +439,6 @@ public:
      * 
      */
     void process_buttons();
-
-    /**
-     * @brief Called by the ADC after a conversion is complete.
-     * Can also be used to set the potentiometers values in software.
-     * @param potentiometer_idx The index of the potentiometer.
-     * @param value The value of the ADC.
-     */
-    void set_potentiometer(unsigned int potentiometer_idx, uint8_t value);
 };
 
 /**
