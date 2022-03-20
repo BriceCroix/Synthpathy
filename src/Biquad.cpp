@@ -19,36 +19,41 @@
 #include "Biquad.h"
 
 #include <math.h>
+#include <string.h>
+#include "pico/stdlib.h"
 
 Biquad::Biquad()
 {
-    m_b0 = 1.f;
-    m_b1, m_b2, m_a1, m_a2, m_z1, m_z2 = 0.f;
+    m_coeffs[B0_IDX] = 1.f;
+    for(unsigned int i = B1_IDX; i <= Z2_IDX; ++i)
+    {
+        m_coeffs[i] = 0.f;
+    }
 }
 
-Biquad::Biquad(float b0, float b1, float b2, float a0, float a1, float a2):
-    m_b0(b0), m_b1(b1), m_b2(b2), m_a1(a1), m_a2(a2)
+Biquad::Biquad(float b0, float b1, float b2, float a0, float a1, float a2)
 {
+    set_b0(b0);
+    set_b1(b1);
+    set_b2(b2);
+    set_a1(a1);
+    set_a2(a2);
     // Normalize if needed
     if(a0 != 1.f)
     {
-        m_b0 /= a0;
-        m_b1 /= a0;
-        m_b2 /= a0;
-        m_a1 /= a0;
-        m_a2 /= a0;
+        for(unsigned int i = B0_IDX; i <= A2_IDX; ++i)
+        {
+            m_coeffs[i] /= a0;
+        }
     }
     // Initialize internal buffers
-    m_z1, m_z2 = 0.f;
+    set_z1(0.f);
+    set_z2(0.f);
 }
 
 void Biquad::copy_coefficients(const Biquad &other)
 {
-    m_b0 = other.m_b0;
-    m_b1 = other.m_b1;
-    m_b2 = other.m_b2;
-    m_a1 = other.m_a1;
-    m_a2 = other.m_a2;
+    memcpy(m_coeffs, other.m_coeffs, (A2_IDX-B0_IDX+1)*sizeof(float));
 }
 
 Biquad Biquad::get_low_pass(float freq_cutoff, float sampling_rate, float Q)
@@ -65,57 +70,48 @@ Biquad Biquad::get_low_pass(float freq_cutoff, float sampling_rate, float Q)
 float Biquad::process(float x)
 {
     // These equations are of the transposed direct form 2.
-    const float y = m_b0 * x + m_z1;
+    const float y = get_b0() * x + get_z1();
 
-    m_z1 = m_b1 * x - m_a1 * y + m_z2;
-    m_z2 = m_b2 * x - m_a2 * y;
+    set_z1(get_b1() * x - get_a1() * y + get_z2());
+    set_z2(get_b2() * x - get_a2() * y);
 
     return y;
 }
 
 DynamicBiquad::DynamicBiquad(const Biquad &biquad):
     // Copy given filter as current and target filter
-    Biquad(biquad.get_b0(), biquad.get_b1(), biquad.get_b2(), biquad.get_a0(), biquad.get_a1(), biquad.get_a2()),
-    m_b0_target(biquad.get_b0()), m_b1_target(biquad.get_b1()), m_b2_target(biquad.get_b2()),
-    m_a1_target(biquad.get_a1()), m_a2_target(biquad.get_a2()),
-    m_z1_target(biquad.get_z1()), m_z2_target(biquad.get_z2())
+    Biquad()
 {
-    m_z1 = biquad.get_z1();
-    m_z2 = biquad.get_z2();
+    memcpy(m_coeffs, biquad.get_coeffs(), (Z2_IDX-B0_IDX+1)*sizeof(float));
+    memcpy(m_coeffs_target, biquad.get_coeffs(), (Z2_IDX-B0_IDX+1)*sizeof(float));
 }
 
 void DynamicBiquad::set_target(const Biquad &target)
 {
     // Copy given filter as target filter
-    m_b0_target = target.get_b0();
-    m_b1_target = target.get_b1();
-    m_b2_target = target.get_b2();
-    m_a1_target = target.get_a1();
-    m_a2_target = target.get_a2();
-    m_z1_target = target.get_z1();
-    m_z2_target = target.get_z2();
+    memcpy(m_coeffs_target, target.get_coeffs(), (Z2_IDX-B0_IDX+1)*sizeof(float));
 }
 
 float DynamicBiquad::process(float x)
 {
     // Process current filter
-    const float y = m_b0 * x + m_z1;
-    m_z1 = m_b1 * x - m_a1 * y + m_z2;
-    m_z2 = m_b2 * x - m_a2 * y;
+    const float y = get_b0() * x + get_z1();
+    set_z1(get_b1() * x - get_a1() * y + get_z2());
+    set_z2(get_b2() * x - get_a2() * y);
 
     // Process target filter
-    const float y_target = m_b0_target * x + m_z1_target;
-    m_z1_target = m_b1_target * x - m_a1_target * y_target + m_z2_target;
-    m_z2_target = m_b2_target * x - m_a2_target * y_target;
+    const float y_target = get_b0_target() * x + get_z1_target();
+    set_z1_target(get_b1_target() * x - get_a1_target() * y + get_z2_target());
+    set_z2_target(get_b2_target() * x - get_a2_target() * y);
 
     // Update filter
-    m_b0 = transition_rate_inv * m_b0 + transition_rate * m_b0_target;
-    m_b1 = transition_rate_inv * m_b1 + transition_rate * m_b1_target;
-    m_b2 = transition_rate_inv * m_b2 + transition_rate * m_b2_target;
-    m_a1 = transition_rate_inv * m_a1 + transition_rate * m_a1_target;
-    m_a2 = transition_rate_inv * m_a2 + transition_rate * m_a2_target;
-    m_z1 = transition_rate_inv * m_z1 + transition_rate * m_z1_target;
-    m_z2 = transition_rate_inv * m_z2 + transition_rate * m_z2_target;
+    set_b0(transition_rate_inv * get_b0() + transition_rate * get_b0_target());
+    set_b1(transition_rate_inv * get_b1() + transition_rate * get_b1_target());
+    set_b2(transition_rate_inv * get_b2() + transition_rate * get_b2_target());
+    set_a1(transition_rate_inv * get_a1() + transition_rate * get_a1_target());
+    set_a2(transition_rate_inv * get_a2() + transition_rate * get_a2_target());;
+    set_z1(transition_rate_inv * get_z1() + transition_rate * get_z1_target());
+    set_z2(transition_rate_inv * get_z2() + transition_rate * get_z2_target());
 
     // Return updated output
     return transition_rate_inv * y + transition_rate * y_target;
