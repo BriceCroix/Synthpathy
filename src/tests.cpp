@@ -27,6 +27,7 @@
 #include "NoteManager.h"
 #include "multiqore.h"
 #include "waveforms.h"
+#include "Biquad.h"
 
 void perform_tests()
 {
@@ -172,6 +173,59 @@ void perform_tests()
             g_midi_internal_buffer.push(midi_event_note_onoff(MIDI_NOTE_OFF, 0, 12*i, 0x7F));
             note_manager.update_active_notes(0);
         }
+
+        /*----------------------------------------------------------------------------------------*/
+
+        Biquad l_filter;
+
+        t_us = time_us_32();
+        for(unsigned int i = 0; i < NB_TESTS; ++i)
+        {
+            l_filter = Biquad::get_low_pass(i, AUDIO_SAMPLING_FREQUENCY, M_SQRT1_2);;
+        }
+        t_us = time_us_32() - t_us;
+        duration_ns = t_us * 1000 / NB_TESTS;
+        printf("Biquad.get_low_pass(...) : %u ns\n", duration_ns);
+
+        /*----------------------------------------------------------------------------------------*/
+
+        l_filter = Biquad::get_low_pass(500., AUDIO_SAMPLING_FREQUENCY, M_SQRT1_2);
+
+        t_us = time_us_32();
+        for(unsigned int i = 0; i < NB_TESTS; ++i)
+        {
+            l_filter.process(i);
+        }
+        t_us = time_us_32() - t_us;
+        duration_ns = t_us * 1000 / NB_TESTS;
+        printf("Biquad.process(...) : %u ns\n", duration_ns);
+
+        /*----------------------------------------------------------------------------------------*/
+
+        DynamicBiquad l_dynamic_filter = DynamicBiquad(Biquad::get_low_pass(500., AUDIO_SAMPLING_FREQUENCY, M_SQRT1_2));
+        l_dynamic_filter.set_target(DynamicBiquad(Biquad::get_low_pass(1000., AUDIO_SAMPLING_FREQUENCY, 1.)));
+
+        t_us = time_us_32();
+        for(unsigned int i = 0; i < NB_TESTS; ++i)
+        {
+            l_dynamic_filter.process(i);
+        }
+        t_us = time_us_32() - t_us;
+        duration_ns = t_us * 1000 / NB_TESTS;
+        printf("DynamicBiquad.process(...) : %u ns\n", duration_ns);
+
+        /*----------------------------------------------------------------------------------------*/
+
+        t_us = time_us_32();
+        for(unsigned int i = 0; i < NB_TESTS; ++i)
+        {
+            l_dynamic_filter.set_target(l_filter);
+        }
+        t_us = time_us_32() - t_us;
+        duration_ns = t_us * 1000 / NB_TESTS;
+        printf("DynamicBiquad.set_target(...) : %u ns\n", duration_ns);
+
+        /*----------------------------------------------------------------------------------------*/
 
         printf("\n====================   End of tests   ====================\n\n");
         sleep_ms(5000);

@@ -78,7 +78,7 @@ int main() {
     // Retrieve the notes manager
     NoteManager& active_note_manager = NoteManager::get_instance();
     // Create the low-pass filter and acknowledge that controls were taken into account
-    Biquad l_filter = Biquad::get_low_pass(controls.get_filter_cutoff(), AUDIO_SAMPLING_FREQUENCY, controls.get_filter_Q());
+    DynamicBiquad l_filter = DynamicBiquad(Biquad::get_low_pass(controls.get_filter_cutoff(), AUDIO_SAMPLING_FREQUENCY, controls.get_filter_Q()));
     controls.have_filter_params_changed();
 
 
@@ -109,10 +109,9 @@ int main() {
         active_note_manager.update_active_notes(l_time_fs);
 
         // Update low-pass filter
-        // TODO : Avoid instability due to internal filter buffers
         if(controls.have_filter_params_changed())
         {
-            l_filter.copy_coefficients(Biquad::get_low_pass(controls.get_filter_cutoff(), AUDIO_SAMPLING_FREQUENCY, controls.get_filter_Q()));
+            l_filter.set_target(Biquad::get_low_pass(controls.get_filter_cutoff(), AUDIO_SAMPLING_FREQUENCY, controls.get_filter_Q()));
         }
 
         // Compute next samples

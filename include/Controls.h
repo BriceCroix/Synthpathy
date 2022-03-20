@@ -208,7 +208,7 @@ protected:
      * @brief The maximum cutoff frequency of the low-pass filter in Hertz.
      * 
      */
-    static constexpr float FILTER_CUTOFF_MAX_HZ = 20000.f;
+    static constexpr float FILTER_CUTOFF_MAX_HZ = (AUDIO_SAMPLING_FREQUENCY/2 < 20000.f) ? AUDIO_SAMPLING_FREQUENCY/2 : 20000.f;
     
 
     // Private members ---------------------------------------------------------

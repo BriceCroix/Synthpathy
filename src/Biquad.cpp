@@ -72,3 +72,51 @@ float Biquad::process(float x)
 
     return y;
 }
+
+DynamicBiquad::DynamicBiquad(const Biquad &biquad):
+    // Copy given filter as current and target filter
+    Biquad(biquad.get_b0(), biquad.get_b1(), biquad.get_b2(), biquad.get_a0(), biquad.get_a1(), biquad.get_a2()),
+    m_b0_target(biquad.get_b0()), m_b1_target(biquad.get_b1()), m_b2_target(biquad.get_b2()),
+    m_a1_target(biquad.get_a1()), m_a2_target(biquad.get_a2()),
+    m_z1_target(biquad.get_z1()), m_z2_target(biquad.get_z2())
+{
+    m_z1 = biquad.get_z1();
+    m_z2 = biquad.get_z2();
+}
+
+void DynamicBiquad::set_target(const Biquad &target)
+{
+    // Copy given filter as target filter
+    m_b0_target = target.get_b0();
+    m_b1_target = target.get_b1();
+    m_b2_target = target.get_b2();
+    m_a1_target = target.get_a1();
+    m_a2_target = target.get_a2();
+    m_z1_target = target.get_z1();
+    m_z2_target = target.get_z2();
+}
+
+float DynamicBiquad::process(float x)
+{
+    // Process current filter
+    const float y = m_b0 * x + m_z1;
+    m_z1 = m_b1 * x - m_a1 * y + m_z2;
+    m_z2 = m_b2 * x - m_a2 * y;
+
+    // Process target filter
+    const float y_target = m_b0_target * x + m_z1_target;
+    m_z1_target = m_b1_target * x - m_a1_target * y_target + m_z2_target;
+    m_z2_target = m_b2_target * x - m_a2_target * y_target;
+
+    // Update filter
+    m_b0 = transition_rate_inv * m_b0 + transition_rate * m_b0_target;
+    m_b1 = transition_rate_inv * m_b1 + transition_rate * m_b1_target;
+    m_b2 = transition_rate_inv * m_b2 + transition_rate * m_b2_target;
+    m_a1 = transition_rate_inv * m_a1 + transition_rate * m_a1_target;
+    m_a2 = transition_rate_inv * m_a2 + transition_rate * m_a2_target;
+    m_z1 = transition_rate_inv * m_z1 + transition_rate * m_z1_target;
+    m_z2 = transition_rate_inv * m_z2 + transition_rate * m_z2_target;
+
+    // Return updated output
+    return transition_rate_inv * y + transition_rate * y_target;
+}

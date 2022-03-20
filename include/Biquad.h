@@ -82,6 +82,16 @@ public:
     /**@}*/
 
     /**
+     * @brief Getters for the internal buffers.
+     * 
+     * @return float 
+     * @{
+     */
+    inline float get_z1() const { return m_z1; }
+    inline float get_z2() const { return m_z2; }
+    /**@}*/
+
+    /**
      * @brief Copy the coefficients of another filter on current filter.
      * This does not reset the internal buffer.
      */
@@ -113,6 +123,56 @@ public:
             biquad.m_a1 << ", " << biquad.m_a2 << ")";
         return output;            
     }
+};
+
+
+class DynamicBiquad : public Biquad
+{
+protected:
+
+    /**
+     * @brief Target biquad filter coefficients.
+     * 
+     */
+    float m_b0_target, m_b1_target, m_b2_target, m_a1_target, m_a2_target;
+
+    /**
+     * @brief The internal buffers of the target biquad
+     * These correspond to the transposed direct form 2.
+     */
+    float m_z1_target, m_z2_target;
+
+    /**
+     * @brief Tells how fast a filter moves to its target.
+     * Between 0 (filter does not move) and 1 (filter moves instantly)
+     */
+    static constexpr float transition_rate = 0.1;
+
+    /**
+     * @brief 1 minus transition rate.
+     * 
+     */
+    static constexpr float transition_rate_inv = 1. - transition_rate;
+
+public:
+
+    DynamicBiquad(const Biquad &biquad);
+
+    /**
+     * @brief Sets the target to which this filter must tend.
+     * 
+     * @param target The target filter.
+     */
+    void set_target(const Biquad &target);
+
+    /**
+     * @brief Process given sample and updates filter.
+     * 
+     * @param x 
+     * @return float 
+     */
+    float process(float x = 0.f);
+
 };
 
 
