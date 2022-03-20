@@ -6,6 +6,10 @@
 
 [Synthpathy](https://github.com/BriceCroix/Synthpathy.git) is a small and versatile audio synthesizer on a microcontroler. It uses a Raspberry Pico microcontroler. Additional information will be added here during the development process.
 
+Synthpathy is a 4-notes polyphonic synthetizer featuring two types of waveforms (square and saw), an envelope generator (ADSR) with adjustable attack and sustain and a low-pass filter with an adjustable cutoff frequency. The raspberry pico only features 3 ADC channels and a choice had to be made about what parameters could be controlled through potentiometers, but theoretically all ADSR parameters could be handled alongside with filter cutoff and resonnance.
+
+Synthpathy generates sound at 46875 Hertz using raw samples, in floating-point representation, but it would be way more efficient to use 32 or 16 bits fixed-point representation, this issue will be adressed in the future.
+
 
 ## How to build
 
@@ -57,6 +61,16 @@ python3 ../python_scripts/audio_plotter.py capture.txt
 After starting minicom, you will see the raw samples created by Synthpathy. You are supposed to use it in order to see anything else than zeros.
 You can leave minicom with Ctrl+A, X. These samples are saved in `capture.txt`, which can be interpreted as a csv.
 The csv is then processed by `audio_plotter.py` in order to display the audio waveform in a much more pleasing way.
+
+### Debug messages
+
+The previous section showed that defining the macro `DEBUG_AUDIO` with cmake results in Synthpathy printing raw samples in the console.
+Alternatively defining the macro `DEBUG` (with `cmake -DDEBUG=1 ..`) allows to see what events are taken into account and how they are handled.
+
+
+Defining the macro `TESTS_ONLY` (with `cmake -DTESTS_ONLY=1 ..`) puts the software in a special mode where it does not synthesize anything anymore,
+only performing timing measurements. This is useful since it is important that all sound generating functions need to run in about 20 microseconds
+(sampling period with a sampling frequency of 50kHz).
 
 
 ## Credits

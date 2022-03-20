@@ -109,10 +109,24 @@ void DynamicBiquad::set_target(const Biquad &target, unsigned int transition_dur
     else
     {
         // Copy target filter as base filter
-        memcpy(m_coeffs, m_coeffs_target, (Z2_IDX-B0_IDX+1)*sizeof(float));
+        //memcpy(m_coeffs, m_coeffs_target, (Z2_IDX-B0_IDX+1)*sizeof(float));
+        set_b0(get_b0_target());
+        set_b1(get_b1_target());
+        set_b2(get_b2_target());
+        set_a1(get_a1_target());
+        set_a2(get_a2_target());
+        set_z1(get_z1_target());
+        set_z2(get_z2_target());
     }
     // Copy given filter as target filter
-    memcpy(m_coeffs_target, target.get_coeffs(), (Z2_IDX-B0_IDX+1)*sizeof(float));
+    //memcpy(m_coeffs_target, target.get_coeffs(), (Z2_IDX-B0_IDX+1)*sizeof(float));
+    set_b0_target(target.get_b0());
+    set_b1_target(target.get_b1());
+    set_b2_target(target.get_b2());
+    set_a1_target(target.get_a1());
+    set_a2_target(target.get_a2());
+    set_z1_target(target.get_z1());
+    set_z2_target(target.get_z2());
     // Reinitialize transition
     m_transition_duration_fs = transition_duration_fs;
     m_transition_elapsed_fs = 0;
