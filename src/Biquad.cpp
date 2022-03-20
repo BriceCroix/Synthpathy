@@ -84,35 +84,62 @@ DynamicBiquad::DynamicBiquad(const Biquad &biquad):
 {
     memcpy(m_coeffs, biquad.get_coeffs(), (Z2_IDX-B0_IDX+1)*sizeof(float));
     memcpy(m_coeffs_target, biquad.get_coeffs(), (Z2_IDX-B0_IDX+1)*sizeof(float));
+    // Initialize transition as instantaneous and over
+    m_transition_duration_fs = 1;
+    m_transition_elapsed_fs = 1;
 }
 
-void DynamicBiquad::set_target(const Biquad &target)
+void DynamicBiquad::set_target(const Biquad &target, unsigned int transition_duration_fs)
 {
+    // If transition was already in progress
+    if(m_transition_elapsed_fs < m_transition_duration_fs)
+    {
+        // Copy current transition state as base filter
+        const float l_ratio = static_cast<float>(m_transition_elapsed_fs) / m_transition_duration_fs;
+        const float l_ratio_inv = 1.f - l_ratio;
+        set_b0(l_ratio_inv*get_b0() + l_ratio*get_b0_target());
+        set_b1(l_ratio_inv*get_b1() + l_ratio*get_b1_target());
+        set_b2(l_ratio_inv*get_b2() + l_ratio*get_b2_target());
+        set_a1(l_ratio_inv*get_a1() + l_ratio*get_a1_target());
+        set_a2(l_ratio_inv*get_a2() + l_ratio*get_a2_target());
+        set_z1(l_ratio_inv*get_z1() + l_ratio*get_z1_target());
+        set_z2(l_ratio_inv*get_z2() + l_ratio*get_z2_target());
+    }
+    // If last transition is over
+    else
+    {
+        // Copy target filter as base filter
+        memcpy(m_coeffs, m_coeffs_target, (Z2_IDX-B0_IDX+1)*sizeof(float));
+    }
     // Copy given filter as target filter
     memcpy(m_coeffs_target, target.get_coeffs(), (Z2_IDX-B0_IDX+1)*sizeof(float));
+    // Reinitialize transition
+    m_transition_duration_fs = transition_duration_fs;
+    m_transition_elapsed_fs = 0;
 }
 
 float DynamicBiquad::process(float x)
 {
-    // Process current filter
-    const float y = get_b0() * x + get_z1();
-    set_z1(get_b1() * x - get_a1() * y + get_z2());
-    set_z2(get_b2() * x - get_a2() * y);
-
     // Process target filter
     const float y_target = get_b0_target() * x + get_z1_target();
-    set_z1_target(get_b1_target() * x - get_a1_target() * y + get_z2_target());
-    set_z2_target(get_b2_target() * x - get_a2_target() * y);
+    set_z1_target(get_b1_target() * x - get_a1_target() * y_target + get_z2_target());
+    set_z2_target(get_b2_target() * x - get_a2_target() * y_target);
 
-    // Update filter
-    set_b0(transition_rate_inv * get_b0() + transition_rate * get_b0_target());
-    set_b1(transition_rate_inv * get_b1() + transition_rate * get_b1_target());
-    set_b2(transition_rate_inv * get_b2() + transition_rate * get_b2_target());
-    set_a1(transition_rate_inv * get_a1() + transition_rate * get_a1_target());
-    set_a2(transition_rate_inv * get_a2() + transition_rate * get_a2_target());;
-    set_z1(transition_rate_inv * get_z1() + transition_rate * get_z1_target());
-    set_z2(transition_rate_inv * get_z2() + transition_rate * get_z2_target());
+    // If transition is over
+    if(m_transition_elapsed_fs == m_transition_duration_fs)
+    {
+        return y_target;
+    }
+    // If transition in progress
+    else
+    {
+        // Process base filter
+        const float y = get_b0() * x + get_z1();
+        set_z1(get_b1() * x - get_a1() * y + get_z2());
+        set_z2(get_b2() * x - get_a2() * y);
 
-    // Return updated output
-    return transition_rate_inv * y + transition_rate * y_target;
+        // Average both filters and increment transition elapsed time
+        float l_ratio = static_cast<float>(++m_transition_elapsed_fs) / m_transition_duration_fs;
+        return (1-l_ratio)*y + l_ratio*y_target;
+    }
 }

@@ -174,16 +174,16 @@ protected:
     float m_coeffs_target[7];
 
     /**
-     * @brief Tells how fast a filter moves to its target.
-     * Between 0 (filter does not move) and 1 (filter moves instantly)
-     */
-    static constexpr float transition_rate = 0.1;
-
-    /**
-     * @brief 1 minus transition rate.
+     * @brief The duration of the transition in number of samples.
      * 
      */
-    static constexpr float transition_rate_inv = 1. - transition_rate;
+    unsigned int m_transition_duration_fs;
+
+    /**
+     * @brief The transition elapsed time in number of samples.
+     * 
+     */
+    unsigned int m_transition_elapsed_fs;
 
     /**
      * @brief Setters for the filter coefficients.
@@ -239,8 +239,9 @@ public:
      * @brief Sets the target to which this filter must tend.
      * 
      * @param target The target filter.
+     * @param transition_duration_fs The duration of the transition in number of samples. The longer the smoother.
      */
-    void set_target(const Biquad &target);
+    void set_target(const Biquad &target, unsigned int transition_duration_fs=1);
 
     /**
      * @brief Process given sample and updates filter.

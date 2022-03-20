@@ -203,18 +203,7 @@ void perform_tests()
         /*----------------------------------------------------------------------------------------*/
 
         DynamicBiquad l_dynamic_filter = DynamicBiquad(Biquad::get_low_pass(500., AUDIO_SAMPLING_FREQUENCY, M_SQRT1_2));
-        l_dynamic_filter.set_target(DynamicBiquad(Biquad::get_low_pass(1000., AUDIO_SAMPLING_FREQUENCY, 1.)));
-
-        t_us = time_us_32();
-        for(unsigned int i = 0; i < NB_TESTS; ++i)
-        {
-            l_dynamic_filter.process(i);
-        }
-        t_us = time_us_32() - t_us;
-        duration_ns = t_us * 1000 / NB_TESTS;
-        printf("DynamicBiquad.process(...) : %u ns\n", duration_ns);
-
-        /*----------------------------------------------------------------------------------------*/
+        l_dynamic_filter.set_target(Biquad::get_low_pass(1000., AUDIO_SAMPLING_FREQUENCY, 1.));
 
         t_us = time_us_32();
         for(unsigned int i = 0; i < NB_TESTS; ++i)
@@ -224,6 +213,30 @@ void perform_tests()
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
         printf("DynamicBiquad.set_target(...) : %u ns\n", duration_ns);
+
+        /*----------------------------------------------------------------------------------------*/
+
+        l_dynamic_filter.set_target(Biquad::get_low_pass(1000., AUDIO_SAMPLING_FREQUENCY, 1.), NB_TESTS);
+
+        t_us = time_us_32();
+        for(unsigned int i = 0; i < NB_TESTS; ++i)
+        {
+            l_dynamic_filter.process(i);
+        }
+        t_us = time_us_32() - t_us;
+        duration_ns = t_us * 1000 / NB_TESTS;
+        printf("DynamicBiquad.process(...) [transitionning]: %u ns\n", duration_ns);
+
+        /*----------------------------------------------------------------------------------------*/
+
+        t_us = time_us_32();
+        for(unsigned int i = 0; i < NB_TESTS; ++i)
+        {
+            l_dynamic_filter.process(i);
+        }
+        t_us = time_us_32() - t_us;
+        duration_ns = t_us * 1000 / NB_TESTS;
+        printf("DynamicBiquad.process(...) [not transitionning]: %u ns\n", duration_ns);
 
         /*----------------------------------------------------------------------------------------*/
 
