@@ -24,6 +24,7 @@
 
 #include "CircularBuffer.hpp"
 #include "midi.h"
+#include "fxpt.h"
 
 // Global constants ------------------------------------------------------------
 
@@ -113,7 +114,7 @@ extern CircularBuffer<MidiEvent, SIZE_MIDI_BUFFER> g_midi_internal_buffer;
  * @brief The analog value of the audio output.
  * 
  */
-extern CircularBuffer<float, SIZE_AUDIO_BUFFER> g_output_audio_buffer;
+extern CircularBuffer<fxpt_Q0_31, SIZE_AUDIO_BUFFER> g_output_audio_buffer;
 
 
 // GPIO pins assignation -------------------------------------------------------

@@ -262,7 +262,7 @@ protected:
      * @brief The currently selected type of waveform, as a pointer to the actual waveform function.
      * 
      */
-    float(*m_selected_waveform)(unsigned int, unsigned int, float)  = &square_wave;
+    fxpt_Q0_31(*m_selected_waveform)(unsigned int, unsigned int, float)  = &square_wave;
 
     /**
      * @brief The additionnal parameter of each waveform function.
@@ -360,17 +360,17 @@ public:
     /**
      * @brief Get the currently selected type of waveform.
      * This function returned pointer has signature :
-     * float waveform(unsigned int time_fs, unsigned int period_fs, float texture);
+     * fxpt_Q0_31 waveform(unsigned int time_fs, unsigned int period_fs, float texture);
      * 
-     * @return float(*)(float, float, float) 
+     * @return fxpt_Q0_31(*)(unsigned int, unsigned int, float) 
      */
-    inline float(*get_selected_waveform(void) const)(unsigned int, unsigned int, float) { return m_selected_waveform; }
+    inline fxpt_Q0_31(*get_selected_waveform(void) const)(unsigned int, unsigned int, float) { return m_selected_waveform; }
 
     /**
      * @brief Set the currently selected type of waveform.
      * 
      */
-    inline void set_selected_waveform(float (*type_waveform)(unsigned int, unsigned int, float)) { m_selected_waveform = type_waveform; }
+    inline void set_selected_waveform(fxpt_Q0_31 (*type_waveform)(unsigned int, unsigned int, float)) { m_selected_waveform = type_waveform; }
 
     /**
      * @brief Get the texture parameter for the selected waveform.

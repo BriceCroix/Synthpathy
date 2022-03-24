@@ -25,7 +25,6 @@
 #include "audio_pwm.h"
 #include "global.h"
 #include "NoteManager.h"
-#include "multiqore.h"
 #include "waveforms.h"
 #include "Biquad.h"
 
@@ -34,7 +33,6 @@ void perform_tests()
     stdio_init_all();
     g_midi_internal_buffer.empty();
 
-    multiqore_initialize();
     initialize_pwm_audio();
     initialize_controls();
     

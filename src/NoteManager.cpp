@@ -19,7 +19,6 @@
 #include "NoteManager.h"
 
 #include "Controls.h"
-#include "multiqore.h"
 
 #if (defined(DEBUG) || defined(DEBUG_AUDIO))
 #include <stdio.h>
@@ -72,7 +71,7 @@ void NoteManager::update_active_notes(unsigned int time_fs)
                         // Add the new note to the pool, perhaps sustain should also be fixed to avoid jitter
                         m_active_notes_pool[i] = ActiveNote(l_midi_data1, velocity, time_fs, controls.get_attack_fs(), controls.get_decay_fs());
                         break;
-                    }    
+                    }
                 }
                 while ((++i) < NB_ACTIVE_NOTES);
                 // TODO : if pool is full, search for released notes, replace the one released the longest ago
@@ -110,55 +109,27 @@ void NoteManager::update_active_notes(unsigned int time_fs)
     }
 }
 
-float NoteManager::get_audio(unsigned int time_fs)
-{    
-    // Multiprocess this task
-
-    // Start computation of odd indices on core 1
-    struct note_manager_get_audio_thread_params params = {time_fs, 1};
-    multiqore_start_task(&note_manager_get_audio_thread_wrapper);
-    multiqore_send_params(&params, sizeof(struct note_manager_get_audio_thread_params));
-    gpio_put(PIN_LED_ONBOARD, false);
-    // Start computation of event indices on core 0
-    float l_audio_value = get_audio_thread(time_fs, 0);
-    // Add together the two halves of sum
-    float l_audio_value_other_core;
-    multiqore_get_result(&l_audio_value_other_core, sizeof(float));
-    l_audio_value += l_audio_value_other_core;
-
-    // Prevent audio signal from exceeding amplitude 1
-    l_audio_value /= NB_ACTIVE_NOTES;
-
-    return l_audio_value;
-}
-
-
-float NoteManager::get_audio_thread(unsigned int time_fs, unsigned int i_core)
+fxpt_Q0_31 NoteManager::get_audio(unsigned int time_fs)
 {
     const Controls& controls = Controls::get_instance();
-    float l_audio_value = 0;
+    // 2 bits for integer part allows for 4 active notes without overflow
+    // TODO check if 64 bits is an option in order not to lose 2 bits of precision for each note
+    fxpt_Q2_29 l_audio_value = 0;
     // Add output of each single note
-    for(unsigned int i = i_core; i < NB_ACTIVE_NOTES; i += NB_CORES)
+    for(unsigned int i = 0; i < NB_ACTIVE_NOTES; ++i)
     {
-        const float l_audio_value_single = m_active_notes_pool[i].get_audio_value(
+        const fxpt_Q0_31 l_audio_value_single = m_active_notes_pool[i].get_audio_value(
             time_fs,
             controls.get_selected_waveform(),
             controls.get_texture(),
             controls.get_sustain()
-        );    
-        l_audio_value += l_audio_value_single;
+        );
+        // Convert each value to 2 integer bits
+        l_audio_value += fxpt_convert_m(l_audio_value_single, 0, 2);
     }
-    return l_audio_value;
-}
 
+    // Each note contribution has amplitude 1, sum must stay of amplitude 1
+    l_audio_value /= NB_ACTIVE_NOTES;
 
-void note_manager_get_audio_thread_wrapper()
-{
-    NoteManager& note_manager = NoteManager::get_instance();
-
-    struct note_manager_get_audio_thread_params params;
-    multiqore_get_params(&params, sizeof(struct note_manager_get_audio_thread_params));
-
-    const float result = note_manager.get_audio_thread(params.time_fs, params.i_core);
-    multiqore_send_result(&result, sizeof(float)); 
+    return fxpt_convert_m(l_audio_value, 2, 0);
 }

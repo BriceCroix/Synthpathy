@@ -38,7 +38,6 @@
 #include "audio_pwm.h"
 #include "Controls.h"
 #include "NoteManager.h"
-#include "multiqore.h"
 #include "Biquad.h"
 
 int main() {
@@ -63,7 +62,6 @@ int main() {
     g_midi_internal_buffer.empty();
 
     // Initialize everything
-    multiqore_initialize();
     initialize_pwm_audio();
     initialize_controls();
     //TODO : initialize_uart()
@@ -118,14 +116,14 @@ int main() {
         while(!g_output_audio_buffer.is_full())
         {
             // Compute audio sample
-            float l_audio_sample = active_note_manager.get_audio(l_time_fs);
+            fxpt_Q0_31 l_audio_sample = active_note_manager.get_audio(l_time_fs);
             // Filter audio sample
             l_audio_sample = l_filter.process(l_audio_sample);
 
             // Effects can be added on the audio sample here
 
             #ifdef DEBUG_AUDIO
-            printf("%f\n", l_audio_sample);
+            printf("%d\n", l_audio_sample);
             #endif
 
             #if defined(DEBUG)

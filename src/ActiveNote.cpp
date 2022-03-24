@@ -96,15 +96,16 @@ void ActiveNote::release(unsigned int time_released_fs, float sustain, unsigned 
 }
 
 
-float ActiveNote::get_audio_value(unsigned int time_fs, float(*waveform)(unsigned int, unsigned int, float), float texture, float sustain) const
+fxpt_Q0_31 ActiveNote::get_audio_value(unsigned int time_fs, fxpt_Q0_31(*waveform)(unsigned int, unsigned int, float), float texture, float sustain) const
 {
     if (time_fs >= m_time_stop_fs)
     {
-        return 0.f;
+        return 0;
     }
 
-    float l_audio_value = waveform(time_fs, m_period_fs, texture);
+    fxpt_Q0_31 l_audio_value = waveform(time_fs, m_period_fs, texture);
 
+    // TODO change adsr and velocity for fixed point, handle overflows in multiplications
     l_audio_value *= get_ADSR_envelope(time_fs, sustain) * m_velocity;
     return l_audio_value;
 }

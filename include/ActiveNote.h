@@ -154,9 +154,9 @@ public:
      * @param waveform The selected type of waveform.
      * @param texture The texture parameter of the waveform.
      * @param sustain Sustain level between 0 and 1.
-     * @return float 
+     * @return fxpt_Q0_31 
      */
-    float get_audio_value(unsigned int time_fs, float(*waveform)(unsigned int, unsigned int, float), float texture, float sustain) const;
+    fxpt_Q0_31 get_audio_value(unsigned int time_fs, fxpt_Q0_31(*waveform)(unsigned int, unsigned int, float), float texture, float sustain) const;
 
     /**
      * @brief Indicates whether the note is still alive or not.

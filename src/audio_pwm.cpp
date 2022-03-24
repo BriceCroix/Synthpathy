@@ -56,13 +56,19 @@ void pwm_wrap_interrupt_handler()
     // Increment time
     g_time_fs++;
 
-    // Set the audio output to relevant value
-    const float l_audio_sample = g_output_audio_buffer.pop();
-    uint16_t l_int_audio_value = (l_audio_sample + 1) * std::numeric_limits<uint16_t>::max() / 2;
+    // Recover computed audio sample
+    const fxpt_Q0_31 l_audio_sample = g_output_audio_buffer.pop();
+
+    //if float between -1 and 1 :
+    //uint16_t l_int_audio_value = (l_audio_sample + 1) * std::numeric_limits<uint16_t>::max() / 2;
+
+    // Convert from Q0.31 to UQ0.32 then to UQ0.16
+    const fxpt_UQ0_16 l_int_audio_value = fxpt_convert_n(fxpt32_signed_unsigned_map(l_audio_sample), 32, 16);
+    
     // Set low byte and high byte on both pwm channels.
     //pwm_set_gpio_level(PIN_PWM_AUDIO_OUTPUT_L, l_int_audio_value & 0x00FF);
-    //pwm_set_gpio_level(PIN_PWM_AUDIO_OUTPUT_H, l_int_audio_value & 0xFF00);
-    pwm_set_both_levels(SLICE_PWM_AUDIO_OUTPUT, l_int_audio_value & 0x00FF, l_int_audio_value & 0xFF00);
+    //pwm_set_gpio_level(PIN_PWM_AUDIO_OUTPUT_H, l_int_audio_value >> 8);
+    pwm_set_both_levels(SLICE_PWM_AUDIO_OUTPUT, l_int_audio_value & 0x00FF, l_int_audio_value >> 8);
 }
 
 
