@@ -166,13 +166,13 @@ protected:
      * @brief The minimum sustain value.
      * 
      */
-    static constexpr float SUSTAIN_MIN = 0.f;
+    static constexpr fxpt_Q0_31 SUSTAIN_MIN = 0;
 
     /**
      * @brief The maximum sustain value.
      * 
      */
-    static constexpr float SUSTAIN_MAX = 1.f;
+    static constexpr fxpt_Q0_31 SUSTAIN_MAX = std::numeric_limits<fxpt_Q0_31>::max();
 
     /**
      * @brief The minimum release duration in seconds.
@@ -262,13 +262,13 @@ protected:
      * @brief The currently selected type of waveform, as a pointer to the actual waveform function.
      * 
      */
-    fxpt_Q0_31(*m_selected_waveform)(unsigned int, unsigned int, float)  = &square_wave;
+    fxpt_Q0_31(*m_selected_waveform)(unsigned int, unsigned int, fxpt_Q0_31)  = &square_wave;
 
     /**
      * @brief The additionnal parameter of each waveform function.
      * 
      */
-    float m_texture;
+    fxpt_Q0_31 m_texture;
 
     /**
      * @brief The currently selected octave.
@@ -292,7 +292,7 @@ protected:
      * @brief The sustain value between 0 and 1.
      * 
      */
-    float m_sustain;
+    fxpt_Q0_31 m_sustain;
 
     /**
      * @brief The release value of the ADSR envelope, in number of periods of the audio sampling frequency.
@@ -360,24 +360,24 @@ public:
     /**
      * @brief Get the currently selected type of waveform.
      * This function returned pointer has signature :
-     * fxpt_Q0_31 waveform(unsigned int time_fs, unsigned int period_fs, float texture);
+     * fxpt_Q0_31 waveform(unsigned int time_fs, unsigned int period_fs, fxpt_Q0_31 texture);
      * 
-     * @return fxpt_Q0_31(*)(unsigned int, unsigned int, float) 
+     * @return fxpt_Q0_31(*)(unsigned int, unsigned int, fxpt_Q0_31) 
      */
-    inline fxpt_Q0_31(*get_selected_waveform(void) const)(unsigned int, unsigned int, float) { return m_selected_waveform; }
+    inline fxpt_Q0_31(*get_selected_waveform(void) const)(unsigned int, unsigned int, fxpt_Q0_31) { return m_selected_waveform; }
 
     /**
      * @brief Set the currently selected type of waveform.
      * 
      */
-    inline void set_selected_waveform(fxpt_Q0_31 (*type_waveform)(unsigned int, unsigned int, float)) { m_selected_waveform = type_waveform; }
+    inline void set_selected_waveform(fxpt_Q0_31 (*type_waveform)(unsigned int, unsigned int, fxpt_Q0_31)) { m_selected_waveform = type_waveform; }
 
     /**
      * @brief Get the texture parameter for the selected waveform.
      * 
-     * @return float 
+     * @return fxpt_Q0_31 
      */
-    inline float get_texture() const { return m_texture; }
+    inline fxpt_Q0_31 get_texture() const { return m_texture; }
 
     /**
      * @brief The attack value of the ADSR envelope, in number of periods of the audio sampling frequency.
@@ -395,7 +395,7 @@ public:
      * @brief The sustain value between 0 and 1.
      * 
      */
-    inline float get_sustain() const { return m_sustain; }
+    inline fxpt_Q0_31 get_sustain() const { return m_sustain; }
 
     /**
      * @brief The release value of the ADSR envelope, in number of periods of the audio sampling frequency.

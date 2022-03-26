@@ -45,7 +45,7 @@ protected:
      * @brief The velocity of the note between 0 and 1.
      * 
      */
-    float m_velocity;
+    fxpt_Q0_31 m_velocity;
 
     /**
      * @brief Time at which the note started, in number of periods of the audio sampling frequency.
@@ -87,7 +87,7 @@ protected:
      * @brief The value of the ADSR envelope at release time.
      * 
      */
-    float m_ADSR_at_release;
+    fxpt_Q0_31 m_ADSR_at_release;
 
 
     // Private methods -----------------------------------------------------------------------------
@@ -97,9 +97,9 @@ protected:
      * 
      * @param time_fs Current time in number of periods of the audio sampling frequency.
      * @param sustain Sustain level between 0 and 1.
-     * @return float 
+     * @return fxpt_Q0_31 
      */
-    float get_ADSR_envelope(unsigned int time_fs, float sustain) const;
+    fxpt_Q0_31 get_ADSR_envelope(unsigned int time_fs, fxpt_Q0_31 sustain) const;
 
 public:
 
@@ -156,7 +156,7 @@ public:
      * @param sustain Sustain level between 0 and 1.
      * @return fxpt_Q0_31 
      */
-    fxpt_Q0_31 get_audio_value(unsigned int time_fs, fxpt_Q0_31(*waveform)(unsigned int, unsigned int, float), float texture, float sustain) const;
+    fxpt_Q0_31 get_audio_value(unsigned int time_fs, fxpt_Q0_31(*waveform)(unsigned int, unsigned int, fxpt_Q0_31), fxpt_Q0_31 texture, fxpt_Q0_31 sustain) const;
 
     /**
      * @brief Indicates whether the note is still alive or not.

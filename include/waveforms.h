@@ -35,9 +35,10 @@
  * @param duty_cycle The duty cycle between 0 and 1.
  * @return fxpt_Q0_31 
  */
-inline fxpt_Q0_31 square_wave(unsigned int time, unsigned int period, float duty_cycle = 0.5f)
+inline fxpt_Q0_31 square_wave(unsigned int time, unsigned int period, fxpt_Q0_31 duty_cycle = (1<<30))
 {
-    return ((time % period) < (period * duty_cycle)) ? std::numeric_limits<fxpt_Q0_31>::max() : std::numeric_limits<fxpt_Q0_31>::min();
+    constexpr fxpt_Q0_31 l_one = std::numeric_limits<fxpt_Q0_31>::max();
+    return ((time % period) < fxpt_convert_n((fxpt64_t)period * (fxpt64_t)duty_cycle, 31, 0)) ? l_one : -l_one;
 }
 
 /**
@@ -48,7 +49,7 @@ inline fxpt_Q0_31 square_wave(unsigned int time, unsigned int period, float duty
  * @param reserved Unused parameter.
  * @return fxpt_Q0_31 
  */
-inline fxpt_Q0_31 saw_wave(unsigned int time, unsigned int period, float reserved = 0.f)
+inline fxpt_Q0_31 saw_wave(unsigned int time, unsigned int period, fxpt_Q0_31 reserved = 0)
 {
     // return 2. * ((static_cast<float>(time % period) / period) - 0.5f);
 

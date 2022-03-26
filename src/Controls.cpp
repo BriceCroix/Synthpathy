@@ -50,7 +50,7 @@ Controls::Controls()
     // Default selection
     m_selected_octave = 3;
     m_selected_waveform = &square_wave;
-    m_texture = 0.5;
+    m_texture = fxpt_Q0_31(1<<30);
     m_leds |= (1<<LED_WAVEFORM_SQUARE_ENABLED_IDX);
 
     // Default ADSR
@@ -217,6 +217,7 @@ void Controls::process_buttons()
             m_leds &= ~(1<<LED_WAVEFORM_SAW_ENABLED_IDX);
             m_leds |= (1<<LED_WAVEFORM_SQUARE_ENABLED_IDX);
         }
+        // Maybe set m_texture to relevant value, although it will be overwritten next time its potentiometer is read
         l_leds_need_refresh = true;
         #ifdef DEBUG
         printf("Waveform change ! Is now %d\n", m_selected_waveform);
@@ -262,8 +263,8 @@ void Controls::set_potentiometer(unsigned int potentiometer_idx, uint8_t value)
         break;
 
     case POTENTIOMETER_SUSTAIN_IDX:
-        // Sustain is linear between min and max
-        m_sustain = SUSTAIN_MIN + ((SUSTAIN_MAX-SUSTAIN_MIN) * static_cast<float>(value) / std::numeric_limits<uint8_t>::max());
+        // Sustain is linear between min and max, comes in fxpt_UQ0.8
+        m_sustain = SUSTAIN_MIN + fxpt_convert_n((fxpt64_t)(SUSTAIN_MAX-SUSTAIN_MIN) * fxpt_convert_n((fxpt64_t)value, 8, 31), 62, 31);
         break;
 
     case POTENTIOMETER_FILTER_CUTOFF_IDX:
@@ -275,8 +276,8 @@ void Controls::set_potentiometer(unsigned int potentiometer_idx, uint8_t value)
         // Update texture parameter according to selected waveform
         if(m_selected_waveform == &square_wave)
         {
-            // Square wave can have a duty cycle between 0 and 0.5
-            m_texture = 0.5 * static_cast<float>(value) / std::numeric_limits<uint8_t>::max();
+            // Square wave can have a duty cycle between 0 and 0.5, so value can be interpreted as fxpt_UQ-1.9
+            m_texture = fxpt_convert_n((fxpt_Q0_31)value, 9, 31);
         }else
         if(m_selected_waveform == &square_wave)
         {

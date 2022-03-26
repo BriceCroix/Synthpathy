@@ -67,7 +67,8 @@ void NoteManager::update_active_notes(unsigned int time_fs)
                         printf("Found available note at index %d\n", i);
                         #endif
 
-                        const float velocity = static_cast<float>(l_midi_data2) / 0x7F;
+                        // The midi velocity can be interpreted as Q0.7
+                        const fxpt_Q0_31 velocity = fxpt_convert_n(l_midi_data2, 7, 31);
                         // Add the new note to the pool, perhaps sustain should also be fixed to avoid jitter
                         m_active_notes_pool[i] = ActiveNote(l_midi_data1, velocity, time_fs, controls.get_attack_fs(), controls.get_decay_fs());
                         break;
