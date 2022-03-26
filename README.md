@@ -61,6 +61,9 @@ python3 ../python_scripts/audio_plotter.py capture.txt
 After starting minicom, you will see the raw samples created by Synthpathy. You are supposed to use it in order to see anything else than zeros.
 You can leave minicom with Ctrl+A, X. These samples are saved in `capture.txt`, which can be interpreted as a csv.
 The csv is then processed by `audio_plotter.py` in order to display the audio waveform in a much more pleasing way.
+This script also creates an audio wav file in the same build directory. Please note that Synthpathy cannot create real-time audio while
+also printing samples. As a result, the output audio file will be shorter than the duration of your tests. This is obviously not true when
+using Synthpathy without `DEBUG_AUDIO` activated.
 
 ### Debug messages
 

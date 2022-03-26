@@ -50,12 +50,7 @@ constexpr unsigned int PWM_AUDIO_BIT_DEPTH_PER_CHANNEL = 8;
  * @brief The clock divider used by the pwm audio output.
  * NB : 192MHz / (16*256) = 46875 Hz of sampling frequency. 
  */
-constexpr unsigned int PWM_AUDIO_CLK_DIVIDER =
-#ifdef DEBUG_AUDIO
-    128;
-#else
-    16;
-#endif
+constexpr unsigned int PWM_AUDIO_CLK_DIVIDER = 16;
 
 /**
  * @brief The actual sampling frequency used for sample-based computation.

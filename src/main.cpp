@@ -113,7 +113,9 @@ int main() {
         }
 
         // Compute next samples
+        #ifndef DEBUG_AUDIO
         while(!g_output_audio_buffer.is_full())
+        #endif
         {
             // Compute audio sample
             fxpt_Q0_31 l_audio_sample = active_note_manager.get_audio(l_time_fs);

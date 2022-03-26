@@ -1,12 +1,13 @@
 import sys
 import matplotlib.pyplot as plt
 import numpy as np
+import soundfile as sf
 
 # These values are copied from "global.h"
 SYSTEM_CLOCK_FREQUENCY_KHZ = 192000
-PWM_AUDIO_CLK_DIVIDER = 128
+PWM_AUDIO_CLK_DIVIDER = 16
 PWM_AUDIO_BIT_DEPTH_PER_CHANNEL = 8
-AUDIO_SAMPLING_FREQUENCY = (SYSTEM_CLOCK_FREQUENCY_KHZ*1000.0) / (PWM_AUDIO_CLK_DIVIDER * (1<<PWM_AUDIO_BIT_DEPTH_PER_CHANNEL))
+AUDIO_SAMPLING_FREQUENCY = int((SYSTEM_CLOCK_FREQUENCY_KHZ*1000) / (PWM_AUDIO_CLK_DIVIDER * (1<<PWM_AUDIO_BIT_DEPTH_PER_CHANNEL)))
 
 
 ######################################## Main Section ##############################################
@@ -21,6 +22,9 @@ if __name__ == '__main__':
     # Retrieve audio signal
     data = np.genfromtxt(filename, dtype=float, delimiter=";")
     time = np.arange(0, len(data)) / AUDIO_SAMPLING_FREQUENCY
+
+    # Create audio file
+    sf.write(filename + ".wav", data / (2**31), AUDIO_SAMPLING_FREQUENCY, subtype='FLOAT')
 
     # Check for errors in the input file, translated to nans
     errors = np.where(np.isnan(data))
