@@ -256,10 +256,11 @@ void Controls::set_potentiometer(unsigned int potentiometer_idx, uint8_t value)
     switch (potentiometer_idx)
     {
     case POTENTIOMETER_ATTACK_IDX:
-        // TODO Attack should probably not be linear
-        m_attack_fs = ATTACK_MIN_FS + (static_cast<float>(ATTACK_MAX_FS-ATTACK_MIN_FS) * static_cast<float>(value) / std::numeric_limits<uint8_t>::max());
+        // Attack potentiometer is converted to logarithmic (this could be achieved by using a logarithmic pot directly)
+        // fxpt8 is simply an exponential mapping [0, 255] -> [0, 255], its output can be considered in fxpt_UQ0.8
+        m_attack_fs = ATTACK_MIN_FS + fxpt_convert_n((ufxpt64_t)(ATTACK_MAX_FS-ATTACK_MIN_FS) * (ufxpt64_t)fxpt8_pow2(value), 8, 0);
         // While only two pots can be used for ADSR, release is also controlled by attack potentiometer
-        m_release_fs = RELEASE_MIN_FS + (static_cast<float>(RELEASE_MAX_FS-RELEASE_MIN_FS) * static_cast<float>(value) / std::numeric_limits<uint8_t>::max());
+        m_release_fs = RELEASE_MIN_FS + fxpt_convert_n((ufxpt64_t)(RELEASE_MAX_FS-RELEASE_MIN_FS) * (ufxpt64_t)fxpt_UQ0_8(fxpt8_pow2(value)), 8, 0);
         break;
 
     case POTENTIOMETER_SUSTAIN_IDX:

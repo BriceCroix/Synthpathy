@@ -178,7 +178,7 @@ protected:
      * @brief The minimum release duration in seconds.
      * 
      */
-    static constexpr float RELEASE_MIN_S = 1e-3f;
+    static constexpr float RELEASE_MIN_S = 0;
 
     /**
      * @brief The minimum release duration in number of samples.

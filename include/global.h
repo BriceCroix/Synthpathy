@@ -90,6 +90,12 @@ constexpr unsigned int POTENTIOMETERS_REFRESH_RATE_HZ =
     5000;
 #endif
 
+/**
+ * @brief The transition duration used by the dynamic filter, in number of samples.
+ * The longer the smoother.
+ */
+constexpr unsigned int DYNAMIC_FILTER_TRANSITION_FS = AUDIO_SAMPLING_FREQUENCY * 0.01;
+
 
 // Global variables ------------------------------------------------------------
 

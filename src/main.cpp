@@ -117,7 +117,10 @@ int main() {
         // Update low-pass filter
         if(controls.have_filter_params_changed())
         {
-            l_filter.set_target(Biquad::get_low_pass(controls.get_filter_cutoff(), AUDIO_SAMPLING_FREQUENCY, controls.get_filter_Q()));
+            l_filter.set_target(
+                Biquad::get_low_pass(controls.get_filter_cutoff(), AUDIO_SAMPLING_FREQUENCY, controls.get_filter_Q()),
+                DYNAMIC_FILTER_TRANSITION_FS
+            );
         }
 
         // Compute next samples
