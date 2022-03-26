@@ -118,7 +118,7 @@ public:
      * @param attack_fs Attack duration in number of periods of the audio sampling frequency.
      * @param decay_fs Decay duration in number of periods of the audio sampling frequency.
      */
-    ActiveNote(MidiByte midi_note, float velocity, unsigned int time_start_fs, unsigned int attack_fs, unsigned int decay_fs);
+    ActiveNote(MidiByte midi_note, fxpt_Q0_31 velocity, unsigned int time_start_fs, unsigned int attack_fs, unsigned int decay_fs);
 
     ~ActiveNote() = default;
 

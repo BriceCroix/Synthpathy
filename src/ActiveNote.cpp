@@ -30,7 +30,7 @@ ActiveNote::ActiveNote()
     m_time_stop_fs = 0; 
 }
 
-ActiveNote::ActiveNote(MidiByte _midi_note, float _velocity, unsigned int _time_start_fs, unsigned int _attack_fs, unsigned int _decay_fs) :
+ActiveNote::ActiveNote(MidiByte _midi_note, fxpt_Q0_31 _velocity, unsigned int _time_start_fs, unsigned int _attack_fs, unsigned int _decay_fs) :
     m_midi_note(_midi_note),
     m_velocity(_velocity),
     m_time_start_fs(_time_start_fs),
@@ -42,7 +42,7 @@ ActiveNote::ActiveNote(MidiByte _midi_note, float _velocity, unsigned int _time_
     m_time_released_fs = std::numeric_limits<unsigned int>::max();
     m_time_stop_fs = std::numeric_limits<unsigned int>::max();
     #ifdef DEBUG
-    printf("ActiveNote(%d, %f, %d, %d, %d)\n", m_midi_note, m_velocity, m_time_start_fs, m_attack_fs, m_decay_fs);
+    printf("ActiveNote(%d, %d, %d, %d, %d)\n", m_midi_note, m_velocity, m_time_start_fs, m_attack_fs, m_decay_fs);
     #endif
 }
 

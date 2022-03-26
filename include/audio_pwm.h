@@ -37,5 +37,12 @@ void pwm_wrap_interrupt_handler();
  */
 void start_pwm_audio();
 
+/**
+ * @brief Stops the pwm.
+ * 
+ */
+void stop_pwm_audio();
+
+
 
 #endif //SYNTHPATHY_AUDIO_PWM_H_

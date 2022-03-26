@@ -99,10 +99,10 @@ void perform_tests()
         /*----------------------------------------------------------------------------------------*/
 
         t_us = time_us_32();
-        ActiveNote active_note(0, 1.f, 0, 100, 100);
+        ActiveNote active_note(0, fxpt_Q0_31(1<<30), 0, 500, 500);
         for(unsigned int i = 0; i < NB_TESTS; ++i)
         {
-            active_note.get_audio_value(i%1000, &square_wave, 0.5, 0.5);
+            active_note.get_audio_value(i%1000, &square_wave, fxpt_Q0_31(1<<30), fxpt_Q0_31(1<<30));
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
@@ -113,7 +113,7 @@ void perform_tests()
         t_us = time_us_32();
         for(unsigned int i = 0; i < NB_TESTS; ++i)
         {
-            active_note.get_audio_value(i%1000, &saw_wave, 0.f, 0.5);
+            active_note.get_audio_value(i%1000, &saw_wave, fxpt_Q0_31(0), fxpt_Q0_31(1<<30));
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
@@ -125,7 +125,7 @@ void perform_tests()
         t_us = time_us_32();
         for(unsigned int i = 0; i < NB_TESTS; ++i)
         {
-            active_note.get_audio_value(i%1000, &square_wave, 0.5, 0.5);
+            active_note.get_audio_value(i%1000, &square_wave, fxpt_Q0_31(1<<30), fxpt_Q0_31(1<<30));
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
@@ -138,16 +138,17 @@ void perform_tests()
         for(unsigned int i = 0; i < NB_ACTIVE_NOTES; i++)
         {
             g_midi_internal_buffer.push(midi_event_note_onoff(MIDI_NOTE_ON, 0, 12*i, 0x7F));
-            note_manager.update_active_notes(42+i);
+            note_manager.update_active_notes(0);
         }
 
         controls.set_selected_waveform(&square_wave);
+        // Attack and decay values are not properly handled
 
         t_us = time_us_32();
         for(unsigned int i = 0; i < NB_TESTS; ++i)
         {
-            
-            note_manager.get_audio(60);
+            // Trying to force attack and decay phases, decay being the most complicated one to compute
+            note_manager.get_audio(i%(AUDIO_SAMPLING_FREQUENCY/4));
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
@@ -159,7 +160,7 @@ void perform_tests()
         for(unsigned int i = 0; i < NB_TESTS; ++i)
         {
             
-            note_manager.get_audio(60);
+            note_manager.get_audio(i%(AUDIO_SAMPLING_FREQUENCY/4));
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;

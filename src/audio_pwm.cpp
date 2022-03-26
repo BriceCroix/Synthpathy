@@ -76,3 +76,10 @@ void start_pwm_audio()
 {
     pwm_set_enabled(SLICE_PWM_AUDIO_OUTPUT, true);
 }
+
+
+void stop_pwm_audio()
+{
+    pwm_set_both_levels(SLICE_PWM_AUDIO_OUTPUT, 0, 0);
+    pwm_set_enabled(SLICE_PWM_AUDIO_OUTPUT, false);
+}

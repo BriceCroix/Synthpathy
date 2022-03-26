@@ -40,6 +40,14 @@
 #include "NoteManager.h"
 #include "Biquad.h"
 
+
+int panic();
+
+/**
+ * @brief Main application entry point.
+ * Should never return.
+ * @return int 
+ */
 int main() {
     // Start by overclocking the controler
     set_sys_clock_khz(SYSTEM_CLOCK_FREQUENCY_KHZ, true);
@@ -128,12 +136,13 @@ int main() {
             printf("%d\n", l_audio_sample);
             #endif
 
-            #if defined(DEBUG)
+            // Check that there are still samples ready
             if(g_output_audio_buffer.is_empty())
             {
-                printf("\n/!\\/!\\/!\\ Could not compute samples fast enough. Reset needed /!\\/!\\/!\\\n");
+                #ifndef DEBUG_AUDIO
+                panic();
+                #endif
             }
-            #endif
 
             // Push audio sample in buffer, without verification since it is not full
             // TODO : protect this push from interrupt (replace by pico/utils/queue)
@@ -142,6 +151,33 @@ int main() {
             // Increment local time
             l_time_fs++;
         }
+    }
+
+    // Return is never reached
+    return 1;
+}
+
+/**
+ * @brief Synthpathy panic state.
+ * 
+ * @return int 
+ */
+int panic()
+{
+    // Stop audio output
+    stop_pwm_audio();
+
+    while(1)
+    {
+        #if defined(DEBUG)
+        printf("\n/!\\/!\\/!\\ Could not compute samples fast enough. Reset needed /!\\/!\\/!\\\n");
+        #endif
+
+        // TODO : blink all leds, not only the on-board one
+        gpio_put(PIN_LED_ONBOARD, true);
+        sleep_ms(1000);
+        gpio_put(PIN_LED_ONBOARD, false);
+        sleep_ms(1000);
     }
 
     // Return is never reached
