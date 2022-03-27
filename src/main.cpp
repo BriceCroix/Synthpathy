@@ -94,7 +94,7 @@ int main() {
     // Pre-compute buffer full of 0's, update time accordingly
     while(!g_output_audio_buffer.is_full())
     {
-        g_output_audio_buffer.push(0.f);
+        g_output_audio_buffer.push(0);
         l_time_fs++;
     }
     g_time_fs = l_time_fs;

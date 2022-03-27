@@ -45,7 +45,7 @@ if __name__ == '__main__':
     ax.set_xlabel("Time (s)")
     ax.set_ylabel("Audio signal")
     #ax.set_ylim([-1.1, 1.1])
-    ax.set_ylim([-(2**4) -(2**31), (2**31) + (2**4)])
+    ax.set_ylim([-1.1*(2**31), 1.1*(2**31)])
     #ax.set_ylim([-(2**4), (2**32) + (2**4)])
     ax.set_title("Measured audio signal")
 

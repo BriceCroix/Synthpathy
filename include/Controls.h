@@ -202,13 +202,14 @@ protected:
      * @brief The minimum cutoff frequency of the low-pass filter in Hertz.
      * 
      */
-    static constexpr float FILTER_CUTOFF_MIN_HZ = 20.f;
+    static constexpr fxpt_UQ16_16 FILTER_CUTOFF_MIN_HZ = fxpt_from_float(20.f, 16);
 
     /**
      * @brief The maximum cutoff frequency of the low-pass filter in Hertz.
      * 
      */
-    static constexpr float FILTER_CUTOFF_MAX_HZ = (AUDIO_SAMPLING_FREQUENCY/2 < 20000.f) ? AUDIO_SAMPLING_FREQUENCY/2 : 20000.f;
+    static constexpr fxpt_UQ16_16 FILTER_CUTOFF_MAX_HZ =
+        fxpt_from_float(((AUDIO_SAMPLING_FREQUENCY/2 < 20000.f) ? AUDIO_SAMPLING_FREQUENCY/2 : 20000.f), 16);
     
 
     // Private members ---------------------------------------------------------
@@ -304,25 +305,25 @@ protected:
      * @brief The value of the low pass filter cutoff in Hertz.
      * 
      */
-    float m_filter_cutoff;
+    fxpt_UQ16_16 m_filter_cutoff;
 
     /**
      * @brief The previous value of the low pass filter cutoff in Hertz.
      * 
      */
-    float m_filter_cutoff_old;
+    fxpt_UQ16_16 m_filter_cutoff_old;
 
     /**
      * @brief The value of the low pass filter Q factor;
      * 
      */
-    float m_filter_Q;
+    fxpt_UQ3_29 m_filter_Q;
 
     /**
      * @brief The previous value of the low pass filter Q factor;
      * 
      */
-    float m_filter_Q_old;
+    fxpt_UQ3_29 m_filter_Q_old;
 
 
     // Private methods ---------------------------------------------------------
@@ -406,16 +407,16 @@ public:
     /**
      * @brief The filter cutoff value in Hertz
      * 
-     * @return float 
+     * @return fxpt_UQ16_16 
      */
-    inline float get_filter_cutoff() const { return m_filter_cutoff; }
+    inline fxpt_UQ16_16 get_filter_cutoff() const { return m_filter_cutoff; }
 
     /**
      * @brief The filter Q factor.
      * 
-     * @return float 
+     * @return fxpt_UQ3_29
      */
-    inline float get_filter_Q() const { return m_filter_Q; }
+    inline fxpt_UQ3_29 get_filter_Q() const { return m_filter_Q; }
 
     /**
      * @brief Indicates if the filter parameters have been modified since last call.

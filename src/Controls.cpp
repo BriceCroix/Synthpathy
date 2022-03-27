@@ -60,9 +60,9 @@ Controls::Controls()
     m_release_fs = (RELEASE_MAX_FS - RELEASE_MIN_FS) / 2;
 
     // Initialize filter parameters
-    m_filter_cutoff = sqrtf(FILTER_CUTOFF_MAX_HZ * FILTER_CUTOFF_MIN_HZ);
+    m_filter_cutoff = FILTER_CUTOFF_MAX_HZ;
     m_filter_cutoff_old = m_filter_cutoff;
-    m_filter_Q = M_SQRT1_2;
+    m_filter_Q = fxpt_from_float(M_SQRT1_2, 29);
     m_filter_Q_old = m_filter_Q;
 
     // Get ready for first button matrix read operation
@@ -261,16 +261,20 @@ void Controls::set_potentiometer(unsigned int potentiometer_idx, uint8_t value)
         m_attack_fs = ATTACK_MIN_FS + fxpt_convert_n((ufxpt64_t)(ATTACK_MAX_FS-ATTACK_MIN_FS) * (ufxpt64_t)fxpt8_pow2(value), 8, 0);
         // While only two pots can be used for ADSR, release is also controlled by attack potentiometer
         m_release_fs = RELEASE_MIN_FS + fxpt_convert_n((ufxpt64_t)(RELEASE_MAX_FS-RELEASE_MIN_FS) * (ufxpt64_t)fxpt_UQ0_8(fxpt8_pow2(value)), 8, 0);
+        //printf("atk : %u -> %u\n", value, m_attack_fs);
         break;
 
     case POTENTIOMETER_SUSTAIN_IDX:
         // Sustain is linear between min and max, comes in fxpt_UQ0.8
-        m_sustain = SUSTAIN_MIN + fxpt_convert_n((fxpt64_t)(SUSTAIN_MAX-SUSTAIN_MIN) * fxpt_convert_n((fxpt64_t)value, 8, 31), 62, 31);
+        m_sustain = SUSTAIN_MIN + fxpt_convert_n((fxpt64_t)(SUSTAIN_MAX-SUSTAIN_MIN) * (fxpt64_t)value, 31+8, 31);
+        //printf("sus : %u -> %f\n", value, fxpt_to_float(m_sustain, 31));
         break;
 
     case POTENTIOMETER_FILTER_CUTOFF_IDX:
-        // TODO Filter cutoff frequency should not be linear
-        m_filter_cutoff = FILTER_CUTOFF_MIN_HZ + ((FILTER_CUTOFF_MAX_HZ-FILTER_CUTOFF_MIN_HZ) * static_cast<float>(value) / std::numeric_limits<uint8_t>::max());
+        // Filter cutoff potentiometer is converted to logarithmic (this could be achieved by using a logarithmic pot directly)
+        m_filter_cutoff = FILTER_CUTOFF_MIN_HZ
+            + fxpt_convert_n((ufxpt64_t)(FILTER_CUTOFF_MAX_HZ-FILTER_CUTOFF_MIN_HZ) * (ufxpt64_t)fxpt8_pow2(value), 16+8, 16);
+        //printf("fc : %u -> %f\n", value, fxpt_to_float(m_filter_cutoff, 16));
         break;
 
     case POTENTIOMETER_TEXTURE_IDX:
@@ -279,8 +283,8 @@ void Controls::set_potentiometer(unsigned int potentiometer_idx, uint8_t value)
         {
             // Square wave can have a duty cycle between 0 and 0.5, so value can be interpreted as fxpt_UQ-1.9
             m_texture = fxpt_convert_n((fxpt_Q0_31)value, 9, 31);
-        }else
-        if(m_selected_waveform == &square_wave)
+        }
+        else if(m_selected_waveform == &square_wave)
         {
             // Saw wave does not have a texture parameter yet
             m_texture = 0;
@@ -346,7 +350,6 @@ void initialize_controls()
     {
         adc_gpio_init(PIN_POTENTIOMETERS[i]);
     }
-    adc_select_input(0);
     // Set adc conversion speed
     adc_set_clkdiv((static_cast<float>(ADC_BASE_CLOCK_HZ) / POTENTIOMETERS_REFRESH_RATE_HZ) - 1.f);
     // Set ADC to reed all inputs alternatively (mask with NB_PIN_POTENTIOMETERS ones)
@@ -367,12 +370,15 @@ void initialize_controls()
     irq_set_enabled(ADC_IRQ_FIFO, true);
 
     // Start ADC in free-running mode
+    adc_select_input(0);
     adc_run(true);
 }
 
 
 void adc_irq_handler()
 {
+    // IRQ is cleared by draining the result fifo below the threshold, which is 1 here.
+
     // A static variable remembering which adc channel is used
     // adc_get_selected_input() cannot be used since next conversion has already started
     static unsigned int sl_adc_channel = 0;

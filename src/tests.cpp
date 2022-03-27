@@ -140,6 +140,9 @@ void perform_tests()
             g_midi_internal_buffer.push(midi_event_note_onoff(MIDI_NOTE_ON, 0, 12*i, 0x7F));
             note_manager.update_active_notes(0);
         }
+        unsigned int attack = controls.get_attack_fs();
+        unsigned int decay = controls.get_attack_fs();
+        unsigned int attack_decay = attack + decay;
 
         controls.set_selected_waveform(&square_wave);
         // Attack and decay values are not properly handled
@@ -148,7 +151,7 @@ void perform_tests()
         for(unsigned int i = 0; i < NB_TESTS; ++i)
         {
             // Trying to force attack and decay phases, decay being the most complicated one to compute
-            note_manager.get_audio(i%(AUDIO_SAMPLING_FREQUENCY/4));
+            note_manager.get_audio(i%attack_decay);
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;
@@ -160,7 +163,7 @@ void perform_tests()
         for(unsigned int i = 0; i < NB_TESTS; ++i)
         {
             
-            note_manager.get_audio(i%(AUDIO_SAMPLING_FREQUENCY/4));
+            note_manager.get_audio(i%attack_decay);
         }
         t_us = time_us_32() - t_us;
         duration_ns = t_us * 1000 / NB_TESTS;

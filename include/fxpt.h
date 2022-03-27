@@ -76,13 +76,13 @@
  * @brief Converts fixed-point value with n decimal bits to floating-point value.
  * 
  */
-#define fxpt_to_float(x, n) ((n>0) ? ((float)(x) / (1<<(n))) : ((float)(x) * (1<<(-(n)))));
+#define fxpt_to_float(x, n) ((n>0) ? ((float)(x) / ((fxpt64_t)1<<(n))) : ((float)(x) * ((fxpt64_t)1<<(-(n)))))
 
 /**
  * @brief Converts floating-point value to fixed-point with n decimal bits.
  * 
  */
-#define fxpt_from_float(x, n) (((n)>0) ? ((x) * (1<<(n))) : ((x) / (1<<(-(n)))))
+#define fxpt_from_float(x, n) (((n)>0) ? ((float)(x) * ((fxpt64_t)1<<(n))) : ((float)(x) / ((fxpt64_t)1<<(-(n)))))
 
 /**
  * @brief Unsigned value in fixed-point representation.
@@ -259,7 +259,7 @@ typedef uint64_t ufxpt64_t;
  */
 typedef int64_t fxpt64_t;
 
-#define FXPT_SINE_LUT_SIZE 256
+#define FXPT_SINE_LUT_SIZE 256UL
 #define FXPT_SINE_LUT_IDX_MSK (FXPT_SINE_LUT_SIZE-1)
 #define FXPT_SINE_PERIOD (4*FXPT_SINE_LUT_SIZE)
 
@@ -309,31 +309,28 @@ static fxpt_Q0_31 FXPT_SINE_LUT_QUARTER_Q0_31[FXPT_SINE_LUT_SIZE] =
  * @brief Fixed-point sine function of period 1 ( fxpt_sin(x) = sin(2*pi*x) )
  * Divide input by 2pi for true sine function.
  * This uses a look-up table of size 256, which allows for a period of 1024 samples (using sine properties).
- * @param x The phase between in fixed-point representation (or index in the period of size 1024).
+ * @param x The phase between in fixed-point representation (or index in the period of size 1024). x can also be in Q5_10
  * @return fxpt_Q0_31 
  */
-inline fxpt_Q0_31 fxpt_sin(fxpt_Q5_10 x)
+inline fxpt_Q0_31 fxpt_sin(fxpt_Q21_10 x)
 {
     // Inspired from https://zipcpu.com/dsp/2017/08/26/quarterwave.html
 
     // NB : following computation only work with LUT of sizes power of two
     // Compute index in LUT (if x in second or fourth period quarter, idx = -x-1, else idx = x)
-    const uint8_t l_idx = ((x & (FXPT_SINE_PERIOD>>2)) ? ~x : x) & FXPT_SINE_LUT_IDX_MSK;
+    const uint8_t l_idx = ((x & (FXPT_SINE_PERIOD/4)) ? ~x : x) & FXPT_SINE_LUT_IDX_MSK;
     // Handle minus sign on second half of period
-    return (x & (FXPT_SINE_PERIOD>>1)) ? -FXPT_SINE_LUT_QUARTER_Q0_31[l_idx] : FXPT_SINE_LUT_QUARTER_Q0_31[l_idx];
+    return (x & (FXPT_SINE_PERIOD/2)) ? -FXPT_SINE_LUT_QUARTER_Q0_31[l_idx] : FXPT_SINE_LUT_QUARTER_Q0_31[l_idx];
 }
 
 /**
- * @brief Fixed-point cosine function of period 1 ( fxpt_sin(x) = sin(2*pi*x) )
+ * @brief Fixed-point cosine function of period 1 ( fxpt_cos(x) = cos(2*pi*x) )
  * Divide input by 2pi for true cosine function.
  * This calls fxpt_sin using sine-cosine relations.
  * @param x The phase between in fixed-point representation (or index in the period of size 1024).
  * @return fxpt_Q0_31 
  */
-inline fxpt_Q0_31 fxpt_cos(fxpt_UQ6_10 x)
-{
-    return fxpt_sin(x + FXPT_SINE_LUT_SIZE);
-}
+#define fxpt_cos(x) fxpt_sin((x) + (FXPT_SINE_PERIOD/4))
 
 /**
  * @brief Base two logarithm on integers.
